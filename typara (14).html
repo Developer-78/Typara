@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typara - Typing Speed Trainer</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0097a7;--teal-light:#e0f7fa;--teal-mid:#b2ebf2;--teal-dark:#006064;
+  --text:#212121;--muted:#757575;--border:#e0e0e0;--bg:#f5f5f5;--white:#fff;
+  --green:#43a047;--red:#e53935;--orange:#f57c00;
+  --shadow:0 2px 8px rgba(0,0,0,0.08);--radius:10px;
+  --card-bg:#ffffff;--nav-bg:#ffffff;--input-bg:#f5f5f5;
+}
+body.dark{
+  --text:#e8eaed;--muted:#9aa0a6;--border:#3c4043;--bg:#1a1a2e;--white:#202124;
+  --teal-light:rgba(0,151,167,0.12);--teal-mid:rgba(0,151,167,0.25);
+  --shadow:0 2px 8px rgba(0,0,0,0.3);
+  --card-bg:#202124;--nav-bg:#202124;--input-bg:#2d2d30;
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .25s,color .25s;}
+
+/* NAV */
+.nav{background:var(--nav-bg);border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);position:sticky;top:0;z-index:100;transition:background .25s,border-color .25s;}
+.nav-logo{font-size:22px;font-weight:800;color:var(--teal);letter-spacing:-0.5px;flex-shrink:0;}
+.nav-logo span{color:var(--text);}
+.nav-tabs{display:flex;gap:4px;}
+.nav-tab{background:none;border:none;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .2s;}
+.nav-tab:hover{background:var(--teal-light);color:var(--teal);}
+.nav-tab.active{background:var(--teal-light);color:var(--teal);}
+.nav-right{display:flex;align-items:center;gap:6px;}
+.lang-btn{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .2s;}
+.lang-btn.active{border-color:var(--teal);color:var(--teal);background:var(--teal-light);}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--muted);transition:all .2s;}
+.icon-btn:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-light);}
+.icon-btn.active-icon{border-color:var(--teal);color:var(--teal);background:var(--teal-light);}
+
+/* SCREENS */
+.screen{display:none;max-width:960px;margin:0 auto;padding:32px 24px;}
+.screen.active{display:block;}
+
+/* CARDS */
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:20px;transition:background .25s,border-color .25s;}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;}
+
+/* OPTIONS */
+.options-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;}
+.opt-group{display:flex;flex-direction:column;gap:5px;}
+.opt-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-align:center;}
+.opt-btns{display:flex;gap:4px;}
+.opt-btn{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .2s;}
+.opt-btn:hover{border-color:var(--teal);color:var(--teal);}
+.opt-btn.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+/* PERSONAL BEST BADGE */
+.pb-badge{display:inline-flex;align-items:center;gap:6px;background:var(--teal-light);border:1px solid var(--teal-mid);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--teal);margin-bottom:16px;}
+.pb-badge-wrap{text-align:center;}
+
+/* LIVE STATS */
+.live-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.live-stat{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;box-shadow:var(--shadow);transition:background .25s;}
+.live-stat-val{font-size:26px;font-weight:800;color:var(--teal);line-height:1;}
+.live-stat-label{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-top:4px;}
+
+/* TIMER */
+.timer-wrap{display:flex;justify-content:center;margin-bottom:20px;}
+.timer-ring{position:relative;width:80px;height:80px;}
+.timer-ring svg{transform:rotate(-90deg);}
+.timer-ring-bg{fill:none;stroke:var(--border);stroke-width:6;}
+.timer-ring-fill{fill:none;stroke:var(--teal);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1s linear;}
+.timer-ring-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px;font-weight:800;color:var(--text);}
+.timer-ring.urgent .timer-ring-fill{stroke:var(--red);}
+.timer-ring.urgent .timer-ring-text{color:var(--red);}
+
+/* TEXT BOX */
+.text-box{background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;line-height:2;letter-spacing:0.3px;height:160px;user-select:none;transition:border .2s,background .25s;position:relative;overflow-y:hidden;overflow-x:hidden;scroll-behavior:smooth;white-space:normal;word-break:break-word;}
+.text-box.active-test{border-color:var(--teal);}
+.text-box.done-test{border-color:var(--green);}
+.text-box.font-sm{font-size:15px;}
+.text-box.font-md{font-size:18px;}
+.text-box.font-lg{font-size:22px;}
+.ch{display:inline;transition:color .05s;}
+.ch.correct{color:var(--teal);}
+.ch.wrong{color:var(--red);background:rgba(229,57,53,0.1);border-radius:2px;}
+.ch.pending{color:#bdbdbd;}
+
+/* CURSOR STYLES */
+body.cursor-beam .ch.cursor{border-left:2.5px solid var(--teal);animation:blink .7s infinite;}
+body.cursor-beam .ch.cursor-wrong{border-left:2.5px solid var(--red);animation:blink .7s infinite;}
+body.cursor-block .ch.cursor{background:var(--teal);color:#fff !important;border-radius:2px;animation:blink-block .7s infinite;}
+body.cursor-block .ch.cursor-wrong{background:var(--red);color:#fff !important;border-radius:2px;animation:blink-block .7s infinite;}
+body.cursor-underline .ch.cursor{border-bottom:3px solid var(--teal);animation:blink .7s infinite;}
+body.cursor-underline .ch.cursor-wrong{border-bottom:3px solid var(--red);animation:blink .7s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes blink-block{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* BUTTONS */
+.btn-primary{background:var(--teal);color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-primary:hover{background:var(--teal-dark);}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-secondary{background:var(--white);color:var(--teal);border:2px solid var(--teal);border-radius:8px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-secondary:hover{background:var(--teal-light);}
+.btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px;}
+
+/* KEYBOARD */
+.kb-row{display:flex;gap:4px;margin-bottom:4px;justify-content:center;}
+.kb-key{min-width:36px;height:36px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:default;transition:all .4s;position:relative;}
+.kb-key .ks{font-size:8px;color:var(--muted);margin-top:1px;}
+.kb-key.wide{min-width:55px;}
+.kb-key.space-key{min-width:180px;}
+.kb-toggle{display:flex;gap:6px;margin-bottom:10px;}
+.kb-toggle-btn{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .2s;}
+.kb-toggle-btn.active{background:var(--teal-light);border-color:var(--teal);color:var(--teal);}
+
+/* CHARTS */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.bar-key-lbl{width:18px;font-size:11px;font-weight:700;color:var(--muted);text-align:center;}
+.bar-track{flex:1;background:var(--bg);border-radius:3px;height:13px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .6s;}
+.bar-val-lbl{width:50px;font-size:10px;color:var(--muted);text-align:right;}
+
+/* HEATMAP */
+.hm-grid{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;}
+.hm-cell{aspect-ratio:1;border-radius:2px;background:var(--border);transition:background .3s;}
+
+/* RESULTS GRID */
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
+.result-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;box-shadow:var(--shadow);transition:background .25s;}
+.result-val{font-size:38px;font-weight:900;color:var(--teal);line-height:1;}
+.result-unit{font-size:12px;font-weight:600;color:var(--muted);}
+.result-label{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-top:6px;}
+
+/* PROGRESS BARS */
+.pb-wrap{margin-bottom:10px;}
+.pb-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;}
+.pb-track{background:var(--bg);border-radius:4px;height:7px;}
+.pb-fill{height:7px;border-radius:4px;background:var(--teal);transition:width .8s;}
+
+/* HISTORY TABLE */
+.hist-table{width:100%;border-collapse:collapse;font-size:13px;}
+.hist-table th{text-align:left;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);}
+.hist-table td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+.hist-table tr:last-child td{border-bottom:none;}
+.diff-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;}
+.diff-easy{background:#e8f5e9;color:#2e7d32;}
+.diff-medium{background:#fff3e0;color:#e65100;}
+.diff-hard{background:#fce4ec;color:#c62828;}
+.diff-expert{background:#ede7f6;color:#4527a0;}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px;color:var(--muted);}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+
+/* TIP BOX */
+.tip-box{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;font-size:11px;color:#5d4037;display:flex;gap:8px;align-items:flex-start;}
+body.dark .tip-box{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:#fbbf24;}
+
+/* CHAR STATS */
+.char-stat-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.char-stat-row:last-child{border-bottom:none;}
+
+/* ── SETTINGS PANEL ─────────────────────────────────────── */
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;}
+.settings-overlay.open{opacity:1;pointer-events:all;}
+.settings-panel{position:fixed;top:0;right:-360px;width:320px;height:100%;background:var(--nav-bg);border-left:1px solid var(--border);z-index:201;padding:24px;overflow-y:auto;transition:right .3s ease,background .25s;}
+.settings-overlay.open .settings-panel{right:0;}
+.settings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.settings-title{font-size:16px;font-weight:800;color:var(--text);}
+.settings-close{background:none;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.settings-close:hover{border-color:var(--red);color:var(--red);}
+.settings-section{margin-bottom:22px;}
+.settings-section-label{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.settings-row-label{font-size:13px;font-weight:600;color:var(--text);}
+.settings-row-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.toggle-wrap{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle-wrap input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:all .2s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;}
+.toggle-wrap input:checked + .toggle-slider{background:var(--teal);}
+.toggle-wrap input:checked + .toggle-slider::before{transform:translateX(20px);}
+.settings-btn-group{display:flex;gap:6px;flex-wrap:wrap;}
+.settings-btn{background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .2s;}
+.settings-btn:hover{border-color:var(--teal);color:var(--teal);}
+.settings-btn.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.settings-divider{height:1px;background:var(--border);margin-bottom:22px;}
+
+/* NEW BEST FLASH */
+.new-best-tag{display:inline-block;background:#f59e0b;color:#fff;font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;animation:pulse 1s ease-in-out 3;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}};
+
+@media(max-width:768px){
+  .mobile-msg{display:flex !important;}
+  .nav,.screen,.settings-overlay{display:none !important;}
+}
+</style>
+</head>
+<body class="cursor-beam">
+
+<!-- SETTINGS OVERLAY -->
+<div class="settings-overlay" id="settingsOverlay" onclick="handleOverlayClick(event)">
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-header">
+      <div class="settings-title">⚙️ Settings</div>
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <!-- THEME -->
+    <div class="settings-section">
+      <div class="settings-section-label">Appearance</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">🌙 Dark Mode</div>
+        </div>
+        <label class="toggle-wrap">
+          <input type="checkbox" id="toggleDark" onchange="toggleDarkMode(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="settings-divider"></div>
+
+    <!-- SOUND -->
+    <div class="settings-section">
+      <div class="settings-section-label">Sound</div>
+      <div class="settings-row" style="margin-bottom:12px;">
+        <div>
+          <div class="settings-row-label">🔊 Keystroke Sound</div>
+          <div class="settings-row-sub">Play a sound on each keypress</div>
+        </div>
+        <label class="toggle-wrap">
+          <input type="checkbox" id="toggleSound" onchange="toggleSound(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-section-label" style="margin-top:4px;">Sound Style</div>
+      <div class="settings-btn-group" id="soundStyleBtns">
+        <button class="settings-btn active" onclick="setSoundStyle('typewriter',this)">⌨️ Typewriter</button>
+        <button class="settings-btn" onclick="setSoundStyle('soft',this)">🤫 Soft</button>
+        <button class="settings-btn" onclick="setSoundStyle('mechanical',this)">🔩 Mechanical</button>
+      </div>
+    </div>
+    <div class="settings-divider"></div>
+
+    <!-- FONT SIZE -->
+    <div class="settings-section">
+      <div class="settings-section-label">Text Size</div>
+      <div class="settings-btn-group" id="fontSizeBtns">
+        <button class="settings-btn" onclick="setFontSize('sm',this)">A<small> Small</small></button>
+        <button class="settings-btn active" onclick="setFontSize('md',this)">A<small> Medium</small></button>
+        <button class="settings-btn" onclick="setFontSize('lg',this)">A<small> Large</small></button>
+      </div>
+    </div>
+    <div class="settings-divider"></div>
+
+    <!-- CURSOR -->
+    <div class="settings-section">
+      <div class="settings-section-label">Cursor Style</div>
+      <div class="settings-btn-group" id="cursorBtns">
+        <button class="settings-btn active" onclick="setCursorStyle('beam',this)">| Beam</button>
+        <button class="settings-btn" onclick="setCursorStyle('block',this)">█ Block</button>
+        <button class="settings-btn" onclick="setCursorStyle('underline',this)">_ Underline</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- MOBILE MESSAGE -->
+<div class="mobile-msg" style="display:none;position:fixed;inset:0;background:#f5f5f5;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+  <div style="font-size:48px;margin-bottom:16px;">⌨️</div>
+  <div style="font-size:28px;font-weight:900;color:#0097a7;margin-bottom:8px;">Typara</div>
+  <div style="font-size:16px;font-weight:700;color:#212121;margin-bottom:12px;">Best experienced on desktop</div>
+  <div style="font-size:14px;color:#757575;max-width:280px;line-height:1.6;">Typara is a keyboard typing trainer designed for use with a physical keyboard. Please visit on a desktop or laptop for the full experience. 😊</div>
+  <div style="margin-top:24px;font-size:12px;color:#b0bec5;">typara — typing speed trainer</div>
+</div>
+
+<nav class="nav">
+  <div class="nav-logo">Typ<span>ara</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-test" onclick="showScreen('test')">Test</button>
+    <button class="nav-tab" id="tab-stats" onclick="showScreen('stats')">My Stats</button>
+    <button class="nav-tab" id="tab-history" onclick="showScreen('history')">History</button>
+  </div>
+  <div class="nav-right">
+    <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="lang-pt" onclick="setLang('pt')">PT</button>
+    <button class="lang-btn" id="lang-es" onclick="setLang('es')">ES</button>
+    <button class="icon-btn" id="settingsBtn" onclick="openSettings()" title="Settings">⚙️</button>
+  </div>
+</nav>
+
+<!-- TEST SCREEN -->
+<div class="screen active" id="screen-test">
+  <div style="text-align:center;margin-bottom:20px;">
+    <div style="font-size:32px;font-weight:800;color:var(--teal);letter-spacing:-1px;">Typara</div>
+    <div id="tagline" style="font-size:14px;color:var(--muted);margin-top:6px;">Test your typing speed. Track your progress. Master your keyboard.</div>
+  </div>
+
+  <!-- PERSONAL BEST BADGE -->
+  <div class="pb-badge-wrap" id="pbBadgeWrap" style="display:none;">
+    <span class="pb-badge">🏆 <span id="pbBadgeText">Best: 0 WPM</span></span>
+  </div>
+
+  <div class="options-row">
+    <div class="opt-group">
+      <div class="opt-label" id="lbl-time">TIME</div>
+      <div class="opt-btns">
+        <button class="opt-btn" id="opt-15" onclick="setTime(15,this)">15s</button>
+        <button class="opt-btn active" id="opt-30" onclick="setTime(30,this)">30s</button>
+        <button class="opt-btn" id="opt-60" onclick="setTime(60,this)">60s</button>
+        <button class="opt-btn" id="opt-90" onclick="setTime(90,this)">90s</button>
+        <button class="opt-btn" id="opt-120" onclick="setTime(120,this)">120s</button>
+        <button class="opt-btn" id="opt-300" onclick="setTime(300,this)">5m</button>
+        <button class="opt-btn" id="opt-600" onclick="setTime(600,this)">10m</button>
+        <button class="opt-btn" id="opt-0" onclick="setTime(0,this)">&#8734;</button>
+      </div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label" id="lbl-diff">DIFFICULTY</div>
+      <div class="opt-btns">
+        <button class="opt-btn active" id="opt-easy" onclick="setDiff('easy',this)">Easy</button>
+        <button class="opt-btn" id="opt-medium" onclick="setDiff('medium',this)">Medium</button>
+        <button class="opt-btn" id="opt-hard" onclick="setDiff('hard',this)">Hard</button>
+        <button class="opt-btn" id="opt-expert" onclick="setDiff('expert',this)">Expert</button>
+      </div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label" id="lbl-mode">MODE</div>
+      <div class="opt-btns">
+        <button class="opt-btn active" id="opt-words" onclick="setMode('words',this)">Words</button>
+        <button class="opt-btn" id="opt-sentences" onclick="setMode('sentences',this)">Sentences</button>
+        <button class="opt-btn" id="opt-paragraphs" onclick="setMode('paragraphs',this)">Paragraphs</button>
+        <button class="opt-btn" id="opt-numbers" onclick="setMode('numbers',this)">Numbers</button>
+        <button class="opt-btn" id="opt-stories" onclick="setMode('stories',this)">✨ Stories</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="live-stats">
+    <div class="live-stat"><div class="live-stat-val" id="liveWPM">0</div><div class="live-stat-label" id="lbl-wpm">WPM</div></div>
+    <div class="live-stat"><div class="live-stat-val" id="liveAcc">100%</div><div class="live-stat-label" id="lbl-acc">ACCURACY</div></div>
+    <div class="live-stat"><div class="live-stat-val" id="liveChars">0</div><div class="live-stat-label" id="lbl-chars">CHARACTERS</div></div>
+    <div class="live-stat"><div class="live-stat-val" id="liveErrors">0</div><div class="live-stat-label" id="lbl-errors">ERRORS</div></div>
+  </div>
+
+  <div class="timer-wrap">
+    <div class="timer-ring" id="timerRing">
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle class="timer-ring-bg" cx="40" cy="40" r="34"/>
+        <circle class="timer-ring-fill" id="timerArc" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-ring-text" id="timerText">30</div>
+    </div>
+  </div>
+
+  <div class="text-box font-md" id="textBox"></div>
+
+  <div class="btn-row">
+    <button class="btn-primary" id="startBtn" onclick="startTest()">&#9654; Start</button>
+    <button class="btn-secondary" onclick="resetTest()">&#8634; Reset</button>
+  </div>
+  <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:12px;" id="lbl-hint">Click Start, then type the words above. Press Backspace to correct mistakes.</div>
+</div>
+
+<!-- STATS SCREEN -->
+<div class="screen" id="screen-stats">
+  <div class="results-grid">
+    <div class="result-card">
+      <div class="result-val" id="statBestWPM">0</div>
+      <div class="result-unit" id="lbl-wpm2">WPM</div>
+      <div class="result-label" id="lbl-best">BEST SPEED</div>
+    </div>
+    <div class="result-card">
+      <div style="display:flex;justify-content:center;align-items:center;height:70px;">
+        <svg width="80" height="80" viewBox="0 0 120 120">
+          <circle fill="none" stroke="#b2ebf2" stroke-width="12" cx="60" cy="60" r="48"/>
+          <circle id="accDonut" fill="none" stroke="#0097a7" stroke-width="12" cx="60" cy="60" r="48" stroke-linecap="round" stroke-dasharray="0 301.6" transform="rotate(-90 60 60)"/>
+          <text id="accDonutTxt" x="60" y="60" text-anchor="middle" dominant-baseline="middle" font-size="18" font-weight="800" fill="#0097a7">0%</text>
+        </svg>
+      </div>
+      <div class="result-label" id="lbl-avgacc">AVG ACCURACY</div>
+    </div>
+    <div class="result-card">
+      <div class="result-val" id="statTests">0</div>
+      <div class="result-unit" id="lbl-tests-unit">tests</div>
+      <div class="result-label" id="lbl-total">TOTAL TESTS</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" id="lbl-progress">Progress Overview</div>
+    <div class="pb-wrap">
+      <div class="pb-label"><span id="lbl-wpm3">WPM</span><span id="pbWPMVal">0 / 100</span></div>
+      <div class="pb-track"><div class="pb-fill" id="pbWPM" style="width:0%"></div></div>
+    </div>
+    <div class="pb-wrap">
+      <div class="pb-label"><span id="lbl-acc2">Accuracy</span><span id="pbAccVal">0%</span></div>
+      <div class="pb-track"><div class="pb-fill" id="pbAcc" style="width:0%;background:#43a047"></div></div>
+    </div>
+    <div class="pb-wrap" style="margin-bottom:0">
+      <div class="pb-label"><span id="lbl-con">Consistency</span><span id="pbConVal">0%</span></div>
+      <div class="pb-track"><div class="pb-fill" id="pbCon" style="width:0%;background:#f57c00"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-title" style="margin-bottom:0" id="lbl-activity">Practice Activity</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);">
+        <span id="lbl-less">Less</span>
+        <div style="width:9px;height:9px;border-radius:2px;background:var(--border);"></div>
+        <div style="width:9px;height:9px;border-radius:2px;background:#b2ebf2;"></div>
+        <div style="width:9px;height:9px;border-radius:2px;background:#4dd0e1;"></div>
+        <div style="width:9px;height:9px;border-radius:2px;background:#0097a7;"></div>
+        <span id="lbl-more">More</span>
+      </div>
+    </div>
+    <div class="hm-grid" id="hmGrid"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div>
+        <div class="card-title" style="margin-bottom:2px;" id="lbl-kb">Keyboard Mastery</div>
+        <div style="font-size:11px;color:var(--muted);" id="lbl-kb-sub">Darker = faster. White = not yet practiced.</div>
+      </div>
+      <div class="kb-toggle">
+        <button class="kb-toggle-btn active" id="kbt-speed" onclick="setKBMode('speed',this)">Speed</button>
+        <button class="kb-toggle-btn" id="kbt-acc" onclick="setKBMode('acc',this)">Accuracy</button>
+      </div>
+    </div>
+    <div id="kbViz"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;">
+      <div class="tip-box"><span>&#128161;</span><span id="kbTip1">Darker blue = faster typing speed on that key.</span></div>
+      <div class="tip-box"><span>&#128161;</span><span id="kbTip2">Blue = 100% accuracy. Red = lower accuracy.</span></div>
+      <div class="tip-box"><span>&#128161;</span><span id="kbTip3">White keys have not been practiced yet.</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div>
+        <div class="card-title" id="lbl-charstats">Character Statistics</div>
+        <div id="charStatsList"></div>
+      </div>
+      <div>
+        <div class="card-title" id="lbl-charspeed">Speed per Character</div>
+        <div id="charBarChart"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY SCREEN -->
+<div class="screen" id="screen-history">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="card-title" style="margin-bottom:0" id="lbl-histtitle">Test History</div>
+      <button onclick="clearHistory()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--muted);cursor:pointer;font-family:inherit;" id="lbl-clear">Clear All</button>
+    </div>
+    <div id="histContent"></div>
+  </div>
+</div>
+
+<script>
+// =============================================================
+// ENGINE LAYER — core typing logic, completely isolated
+// =============================================================
+var Engine = (function(){
+  var VALID_KEYS = /^[a-zA-Z0-9 .,!?;:'"\-_@#$%^&*()+=\[\]{}|\\/<>~`]$/;
+  var IGNORE_KEYS = ['Shift','Control','Alt','Meta','CapsLock','Tab','Escape',
+    'ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown',
+    'F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12',
+    'Insert','Delete','PrintScreen','ScrollLock','Pause','ContextMenu',
+    'NumLock','Enter'];
+
+  var state = {
+    words:[],pos:0,correct:0,wrong:0,rawErrors:0,
+    started:false,finished:false,startTime:null,
+    charData:{},typedHistory:[]
+  };
+
+  function reset(words){
+    state.words=words;state.pos=0;state.correct=0;state.wrong=0;
+    state.rawErrors=0;state.started=false;state.finished=false;
+    state.startTime=null;state.charData={};state.typedHistory=[];
+  }
+
+  function processKey(key){
+    if(state.finished) return null;
+    if(IGNORE_KEYS.indexOf(key)!==-1) return null;
+    if(key==='Backspace') return processBackspace();
+    if(!VALID_KEYS.test(key)) return null;
+    if(key.length!==1) return null;
+    return processChar(key);
+  }
+
+  function processChar(key){
+    if(!state.started){state.started=true;state.startTime=Date.now();}
+    if(state.pos>=state.words.length) return null;
+    var expected=state.words[state.pos];
+    var now=Date.now();
+    var isCorrect=(key===expected);
+    var c=expected;
+    if(!state.charData[c]) state.charData[c]={correct:0,total:0,totalMs:0,lastTime:null};
+    state.charData[c].total++;
+    if(isCorrect){
+      state.charData[c].correct++;
+      if(state.charData[c].lastTime!==null) state.charData[c].totalMs+=(now-state.charData[c].lastTime);
+      state.charData[c].lastTime=now;
+    }
+    state.typedHistory.push({char:key,expected:expected,correct:isCorrect,ms:now});
+    if(isCorrect) state.correct++;
+    else{state.wrong++;state.rawErrors++;}
+    state.pos++;
+    var done=(state.pos>=state.words.length);
+    if(done) state.finished=true;
+    return{pos:state.pos,correct:isCorrect,done:done};
+  }
+
+  function processBackspace(){
+    if(state.pos<=0) return null;
+    state.pos--;
+    var last=state.typedHistory.pop();
+    if(last){
+      if(last.correct) state.correct=Math.max(0,state.correct-1);
+      else state.wrong=Math.max(0,state.wrong-1);
+    }
+    return{pos:state.pos,backspace:true};
+  }
+
+  function getWPM(elapsedSecs){
+    var secs=elapsedSecs||getElapsed();
+    if(secs<1) return 0;
+    return Math.round((state.correct/5)/(secs/60));
+  }
+
+  function getAccuracy(){
+    var total=state.correct+state.wrong;
+    if(total===0) return 100;
+    return Math.round((state.correct/total)*100);
+  }
+
+  function getElapsed(){
+    if(!state.startTime) return 0;
+    return(Date.now()-state.startTime)/1000;
+  }
+
+  function getStats(){
+    return{pos:state.pos,correct:state.correct,wrong:state.wrong,rawErrors:state.rawErrors,
+      wpm:getWPM(),accuracy:getAccuracy(),elapsed:getElapsed(),charData:state.charData,
+      finished:state.finished,started:state.started};
+  }
+
+  return{reset:reset,processKey:processKey,getWPM:getWPM,getAccuracy:getAccuracy,getStats:getStats,getElapsed:getElapsed};
+})();
+
+// =============================================================
+// WORD BANKS
+// =============================================================
+var WORDS={
+  en:{
+    easy:['the','be','to','of','and','a','in','that','have','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','any','these','give','day','most','us','great','same','tell','boy','follow','came','want','show','also','around','form','three','small','set','put','end','does','another','well','large','often','hand','high','place','hold','world','found','still','learn','plant','cover','food','sun','four','between','state','keep','eye','never','last','let','thought','city','tree','cross','farm','hard','start','might','story','saw','far','sea','draw','left','late','run','while','press','close','night','real','life','few','open','example','begin','life','always','those','both','paper','together','got','group','often','run','important','until','children','side','feet','car','mile','night','walk','white','sea','began','grow','took','river','four','carry','state','once','book','hear','stop','without','second','later','miss','idea','enough','eat','face','watch','far','real','almost','let','above','girl','sometimes','mountain','cut','young','talk','soon','list','song','leave','family','body','music'],
+    medium:['ability','access','account','achieve','across','action','active','actual','advance','affect','afford','agency','almost','already','although','always','amount','another','answer','anyone','anything','appear','apply','around','arrive','article','aspect','assume','attempt','attend','author','available','average','balance','become','before','behind','believe','benefit','better','between','beyond','billion','branch','breath','bridge','budget','build','burden','career','certain','change','chapter','charge','choice','choose','circle','claim','clear','client','close','common','complete','concern','conduct','confirm','connect','consider','contain','continue','control','correct','create','credit','culture','current','customer','damage','decide','demand','depend','describe','design','detail','develop','direct','discuss','distance','divide','double','during','effect','effort','enable','engage','enough','ensure','entire','environment','equal','escape','establish','event','every','example','exist','expect','explain','failure','famous','figure','finance','follow','foreign','forward','freedom','future','general','global','growth','happen','history','include','increase','industry','instead','interest','involve','issues','language','leader','living','manage','market','matter','meaning','message','method','million','mobile','modern','moment','network','notice','object','obtain','office','option','outside','partner','people','perform','physical','planet','policy','popular','positive','powerful','present','prevent','private','process','product','program','protect','provide','public','purpose','quality','question','quickly','reality','reason','receive','recently','record','reduce','reflect','region','remain','remove','report','require','research','result','return','reveal','review','rights','safety','sample','school','search','season','section','security','select','serious','service','simple','single','social','society','someone','special','specific','speech','standard','station','status','strategy','student','success','support','system','target','teacher','testing','theory','thought','thousand','through','together','toward','travel','treatment','truly','typically','unless','update','useful','usually','various','version','vision','whether','within','without','working','writes'],
+    hard:['abandon','abbreviate','abstraction','accomplish','accumulate','acknowledge','acquisition','adaptation','administration','adversarial','affirmation','aggregate','algorithm','alternative','ambiguous','amendment','amplification','analytical','anniversary','anthropology','application','approximately','architecture','arrangement','articulation','assessment','association','astonishment','authentication','authorization','bibliography','breakthrough','bureaucratic','capabilities','catastrophic','circumstances','collaboration','comfortable','commemorate','communication','comprehensive','concentration','configuration','consequence','consideration','constitution','contamination','contradiction','controversial','coordination','correlation','demonstration','dependencies','deterioration','determination','differentiation','disadvantaged','documentation','effectiveness','elimination','embarrassment','encouragement','entrepreneurship','establishment','examination','extraordinary','formulation','functionality','generalization','geographical','headquarters','identification','implementation','implications','independence','infrastructure','initialization','investigation','justification','manufacturing','methodology','modification','motivation','nevertheless','occasionally','opportunity','organization','overwhelming','participation','performance','perspective','population','possibility','preparation','presentation','previously','probability','professional','programming','qualification','reconstruction','registration','reinforcement','relationship','representation','requirements','responsibility','satisfaction','significance','simultaneously','specification','straightforward','substitution','sustainability','technological','terminology','transformation','understanding','unfortunately','vulnerability','workstation'],
+    expert:['acknowledgement','administration','ambiguously','anthropological','archaeologically','authentication','authorization','biogeographical','characterization','circumlocution','circumstantially','collaboratively','commensurability','comprehensiveness','conceptualization','consequently','contemporaneously','contradistinction','conventionality','correspondence','counterproductive','crystallography','decentralization','decontextualize','deindustrialization','demonstratively','denationalization','desensitization','disenfranchisement','disestablishment','disintegration','dissatisfaction','diversification','ecclesiastically','electromagnetism','entrepreneurship','environmentalism','epistemologically','establishments','exceptionalism','extraordinarily','fundamentalism','geomorphological','governmentality','hierarchically','hyperventilation','hypothetically','identification','implementations','incapacitation','incompatibilities','inconsequential','indiscriminately','industrialization','infrastructure','intellectualism','interdependencies','internationally','interoperability','investigations','jurisdictional','linearization','macroeconomics','microprocessor','misinterpretation','misrepresentation','multiplication','multidimensional','naturalization','neuroscientific','nondiscriminatory','nonproliferation','obstructionism','overinterpretation','paleontological','parameterization','photosynthetically','polymerization','predetermined','preponderance','prerogatives','prioritization','probabilistic','procrastination','professionalism','proportionality','pseudoscientific','psychologically','rationalization','reconfiguration','reconciliation','recontextualize','recrimination','redistribution','representation','standardization','sustainability','systematically','telecommunication','underrepresented','unfathomable','universalization','unprecedented','unreliability','unsubstantiated','vulnerability','xenophobia']
+  },
+  pt:{
+    easy:['o','a','e','de','do','da','em','um','uma','para','com','por','que','se','nao','mais','como','mas','ao','ele','ela','nos','seu','sua','foi','ser','ter','tem','isso','muito','bem','aqui','quando','onde','ainda','tambem','depois','antes','sobre','entao','assim','cada','todo','toda','mesmo','entre','outros','parte','forma','novo','nova','bom','boa','dia','ano','mes','hora','casa','vida','nome','pessoa','mundo','lugar','tempo','filho','pai','mae','amor','olho','mao','trabalho','gente','cidade','coisa','tipo','lado','meio','ponto','pais','rua','deus','mar','rio','vez','livro','anos','dias','caso','empresa','pode','fazer','dizer','querer','chegar','pensar','saber','poder','deixar','seguir','encontrar','levar','parecer','ficar','pedir','lembrar','ajudar','mudar','abrir','voltar','passar','precisar','mostrar','sentir','continuar','realizar','perguntar','escrever','responder','colocar','tirar','trazer','receber','acabar','acontecer','conseguir','ganhar','perder','entrar','sair','falar','usar','viver','dar','ver','ir','vir','querer','poder'],
+    medium:['acontecer','acreditar','adicionar','ambiente','animacao','aparecer','aplicacao','aprender','apresentar','aproximar','arquivo','atencao','atraves','aumentar','beneficio','caminhar','capacidade','carreira','categoria','cenario','certamente','chamada','chamar','comecar','componente','comunicacao','conhecer','considerar','construir','contexto','continuar','controle','conviver','criar','cultura','decisao','desenvolver','diferente','direito','discutir','diversao','durante','economia','educacao','empresa','encontrar','energia','enquanto','entender','especial','exemplo','existir','experiencia','explicar','familia','funcionar','futuro','gerenciar','historia','importante','incluir','informacao','junto','lembrar','ligar','melhorar','metodo','momento','necessario','objetivo','oferecer','organizar','participar','pesquisa','plataforma','possivel','processo','produto','programa','projeto','qualidade','realizar','receber','relacao','resultado','seguranca','servico','sistema','situacao','solucao','trabalhar','trazer','verificar'],
+    hard:['abrangente','acompanhamento','adaptacao','administracao','adversidade','agrupamento','aleatorio','amplitude','analise','aperfeicoamento','aplicabilidade','aprendizagem','argumentacao','armazenamento','associacao','autenticacao','automatizacao','balanceamento','beneficiario','caracterizacao','circunstancia','colaboracao','compensacao','complexidade','compreensao','comunicativo','concentracao','configuracao','consequencia','consideracao','continuidade','contradicao','contribuicao','coordenacao','correspondencia','criatividade','dependencia','desenvolvimento','determinacao','diferenciacao','documentacao','eficiencia','empreendedorismo','estabelecimento','estrategia','estruturacao','experiencia','formacao','funcionalidade','generalizacao','gerenciamento','identificacao','implementacao','independencia','infraestrutura','integracao','interpretacao','investigacao','justificativa','monitoramento','multiplicidade','necessidade','organizacao','participacao','planejamento','posicionamento','processamento','profissionalismo','programacao','questionamento','raciocinio','reconhecimento','relacionamento','representacao','responsabilidade','sistematizacao','sustentabilidade','transformacao','transparencia','universalidade','virtualizacao','vulnerabilidade'],
+    expert:['acompanhamento','autoconhecimento','automaticamente','biodiversidade','caracteristicamente','circunstancialmente','colaborativamente','comercializacao','compreensibilidade','concentradamente','condescendencia','consequentemente','constitucionalidade','contemporaneidade','contextualizacao','contraproducente','correspondencia','descentralizacao','descontextualizar','desindustrializacao','desproporcionalmente','determinantemente','diferenciadamente','documentacao','eletromagnetismo','empreendedorismo','epistemologicamente','estabelecimento','excepcionalmente','extraordinariamente','fundamentalismo','geomorfologico','governamentalidade','hierarquicamente','hiperventilacao','hipoteticamente','identificabilidade','implementacao','incompatibilidades','inconsequentemente','indiscriminadamente','industrializacao','infraestrutura','intelectualismo','interdependencias','internacionalmente','interoperabilidade','investigacao','jurisdicional','linearizacao','macroeconomia','microprocessador','multidimensional','naturalizacao','neurocientifica','obstaculizacao','paleontologico','parametrizacao','fotossinteticamente','polimerizacao','predeterminado','preponderancia','prerrogativas','priorizacao','probabilistico','procrastinacao','profissionalismo','proporcionalidade','pseudocientifico','psicologicamente','racionalizacao','reconfiguracao','reconciliacao','recontextualizar','recriminacao','redistribuicao','representacao','padronizacao','sustentabilidade','sistematicamente','telecomunicacao','subrepresentado','inescrutavel','universalizacao']
+  },
+  es:{
+    easy:['el','la','de','que','y','en','los','se','del','las','un','por','con','no','una','su','para','es','al','lo','como','mas','pero','sus','le','ya','o','fue','este','ha','si','porque','esta','son','entre','cuando','muy','sin','sobre','tambien','me','hasta','hay','donde','han','quien','estan','estado','desde','todo','nos','durante','todos','uno','les','ni','contra','otros','ese','eso','ante','ellos','esto','antes','algunos','uno','otro','otras','otra','el','tanto','esa','estos','mucho','quienes','nada','muchos','cual','poco','ella','estar','haber','tener','hacer','poder','decir','ir','ver','dar','saber','querer','llegar','pasar','deber','poner','parecer','quedar','creer','hablar','llevar','dejar','seguir','encontrar','llamar','venir','partir','saber','vivir','sentir','conocer','pensar','buscar','crear','abrir','escribir','leer','entrar','salir','comenzar','terminar','recibir','mostrar','cambiar','trabajar','jugar','aprender','estudiar'],
+    medium:['acceder','accion','activar','adaptar','adoptar','agrupar','ambiente','analisis','aplicar','aprender','aprobar','archivo','atencion','aumentar','beneficio','calidad','cambio','capacidad','carrera','categoria','comunicar','componente','configurar','conocer','construir','contexto','continuar','control','crear','cultura','decision','desarrollar','diferente','discutir','durante','economia','educacion','empresa','encontrar','energia','entender','especial','ejemplo','experiencia','explicar','familia','funcionar','futuro','gestion','historia','importante','incluir','informacion','inicio','junto','mejorar','metodo','momento','necesario','objetivo','ofrecer','organizar','participar','persona','posible','proceso','producto','programa','proyecto','realizar','recibir','relacion','resultado','seguridad','servicio','sistema','situacion','solucion','trabajar','traer','verificar','version','valorar'],
+    hard:['acompanamiento','adaptacion','administracion','adversidad','agrupamiento','amplitud','analisis','aprendizaje','argumentacion','almacenamiento','asociacion','autenticacion','automatizacion','balanceo','beneficiario','caracterizacion','circunstancia','colaboracion','compensacion','complejidad','comprension','comunicativo','concentracion','configuracion','consecuencia','consideracion','continuidad','contradiccion','contribucion','coordinacion','correspondencia','creatividad','dependencia','desarrollo','determinacion','diferenciacion','documentacion','eficiencia','emprendimiento','establecimiento','estrategia','estructuracion','experiencia','formacion','funcionalidad','generalizacion','identificacion','implementacion','independencia','infraestructura','integracion','interpretacion','investigacion','justificacion','monitoreo','multiplicidad','necesidad','organizacion','participacion','planificacion','posicionamiento','procesamiento','profesionalismo','programacion','razonamiento','reconocimiento','relacion','representacion','responsabilidad','sistematizacion','sostenibilidad','transformacion','transparencia','universalidad','virtualizacion','vulnerabilidad'],
+    expert:['acompanamiento','autocognicion','automaticamente','biodiversidad','caracteristicamente','circunstancialmente','colaborativamente','comercializacion','comprensibilidad','concentradamente','condescendencia','consecuentemente','constitucionalidad','contemporaneidad','contextualizacion','contraproductivo','correspondencia','descentralizacion','descontextualizar','desindustrializacion','desproporcionalmente','determinantemente','diferenciadamente','documentacion','electromagnetismo','emprendimiento','epistemologicamente','establecimiento','excepcionalmente','extraordinariamente','fundamentalismo','geomorfologico','gubernamentalidad','jerarquicamente','hiperventilacion','hipoteticamente','identificabilidad','implementacion','incompatibilidades','inconsecuentemente','indiscriminadamente','industrializacion','infraestructura','intelectualismo','interdependencias','internacionalmente','interoperabilidad','investigacion','jurisdiccional','linealizacion','macroeconomia','microprocesador','multidimensional','naturalizacion','neurocientifica','obstaculizacion','paleontologico','parametrizacion','fotosintesis','polimerizacion','predeterminado','preponderancia','prerrogativas','priorizacion','probabilistico','procrastinacion','profesionalismo','proporcionalidad','pseudocientifico','psicologicamente','racionalizacion','reconfiguracion','reconciliacion','recontextualizar','recriminacion','redistribucion','representacion','estandarizacion','sostenibilidad','sistematicamente','telecomunicacion','subrepresentado','insondable','universalizacion','vulnerabilidad']
+  }
+};
+
+// =============================================================
+// PARAGRAPHS
+// =============================================================
+var PARAGRAPHS={
+  en:[
+    "The game of chess has been played for over fifteen hundred years, originating in northern India before spreading to Persia and then to the rest of the world through Arab traders and travelers. Today it is one of the most widely played games on earth, with hundreds of millions of people enjoying it at every level from casual play to grandmaster competition.",
+    "Typing quickly and accurately is one of the most valuable skills in the modern workplace. Whether you are writing emails, coding software, or creating documents, the ability to type without looking at the keyboard frees your mind to focus on your thoughts rather than the mechanics of the task. With consistent practice, most people can double their typing speed within a few months.",
+    "The universe is estimated to be approximately thirteen point eight billion years old, formed in an event known as the Big Bang. Since that moment, matter has clumped together under gravity to form stars, galaxies, and planets. Our own sun is a middle-aged star located in the outer arm of the Milky Way galaxy, and it has enough fuel to burn for another five billion years.",
+    "Learning a new language opens doors that were previously closed to you. It allows you to connect with people from different cultures, to read literature in its original form, and to think in new ways that your native language may not easily express. Research suggests that bilingual people show greater cognitive flexibility and may even delay the onset of dementia in later life.",
+    "The history of computing spans less than a century, yet its impact on human civilization rivals that of the printing press and the industrial revolution combined. From room-sized machines that could barely perform basic arithmetic to pocket-sized devices with more processing power than early supercomputers, technology has transformed how we work, communicate, and understand the world around us.",
+    "Sleep is one of the most important biological processes that your body undergoes each night. During deep sleep, your brain consolidates memories, repairs cellular damage, and clears out waste products that accumulate during waking hours. Consistently getting less than seven hours of sleep per night has been linked to increased risk of heart disease, diabetes, obesity, and cognitive decline.",
+    "The Amazon rainforest is often called the lungs of the earth because it produces approximately twenty percent of the world's oxygen through photosynthesis. It is home to an estimated ten percent of all species on the planet, many of which have never been scientifically described. The forest plays a critical role in regulating global climate and the water cycle across South America.",
+    "Mathematics is the language in which the laws of nature are written, a statement often attributed to the Italian astronomer Galileo Galilei. From the spiral of a nautilus shell to the orbit of planets around the sun, mathematical patterns appear throughout the natural world. Understanding these patterns has allowed humanity to build bridges, fly airplanes, and send spacecraft to the far edges of our solar system.",
+    "Artificial intelligence is no longer a concept confined to science fiction. Machine learning algorithms now power search engines, recommend movies, detect diseases in medical images, and drive cars on public roads. As these systems become more capable, society faces important questions about privacy, employment, and the ethical use of technology that will shape the future of human civilization.",
+    "The human brain contains approximately eighty-six billion neurons, each connected to thousands of others through synaptic connections that number in the trillions. This vast network gives rise to consciousness, memory, emotion, and all the cognitive abilities that define human experience. Despite decades of research, neuroscientists still debate the fundamental mechanisms by which the brain generates subjective experience."
+  ],
+  pt:[
+    "O xadrez e um dos jogos mais antigos do mundo, com mais de mil e quinhentos anos de historia. Originado na India, o jogo se espalhou pela Persia e pelo mundo arabe antes de chegar a Europa durante a Idade Media. Hoje e jogado por centenas de milhoes de pessoas em todo o planeta, desde jogadores casuais ate grandes mestres que competem em torneios internacionais de alto nivel.",
+    "Digitar rapido e com precisao e uma das habilidades mais valiosas no ambiente de trabalho moderno. Seja escrevendo e-mails, programando sistemas ou criando documentos, a capacidade de digitar sem olhar para o teclado libera sua mente para se concentrar nos seus pensamentos. Com pratica consistente, a maioria das pessoas consegue dobrar sua velocidade de digitacao em poucos meses.",
+    "O universo tem aproximadamente treze virgula oito bilhoes de anos, formado em um evento conhecido como o Big Bang. Desde esse momento, a materia se aglomera sob influencia da gravidade para formar estrelas, galaxias e planetas. Nosso sol e uma estrela de meia-idade localizada no braco externo da Via Lactea e tem combustivel suficiente para brilhar por mais cinco bilhoes de anos.",
+    "Aprender um novo idioma abre portas que antes estavam fechadas para voce. Permite que voce se conecte com pessoas de diferentes culturas, leia literatura em sua forma original e pense de maneiras que seu idioma nativo talvez nao expresse com facilidade. Pesquisas indicam que pessoas bilingues demonstram maior flexibilidade cognitiva e podem retardar o inicio da demencia na velhice.",
+    "A historia da computacao abrange menos de um seculo, mas seu impacto na civilizacao humana rival ao da imprensa e da revolucao industrial combinados. De maquinas do tamanho de salas que mal realizavam operacoes basicas a dispositivos de bolso com mais poder de processamento que os primeiros supercomputadores, a tecnologia transformou como trabalhamos, nos comunicamos e compreendemos o mundo ao nosso redor."
+  ],
+  es:[
+    "El ajedrez es uno de los juegos mas antiguos del mundo, con mas de mil quinientos anos de historia. Originado en la India, el juego se extendio a Persia y al mundo arabe antes de llegar a Europa durante la Edad Media. Hoy es practicado por cientos de millones de personas en todo el planeta, desde jugadores casuales hasta grandes maestros que compiten en torneos internacionales de alto nivel.",
+    "Escribir rapido y con precision es una de las habilidades mas valiosas en el entorno laboral moderno. Ya sea redactando correos electronicos, programando software o creando documentos, la capacidad de escribir sin mirar el teclado libera tu mente para concentrarte en tus pensamientos. Con pratica constante, la mayoria de las personas puede duplicar su velocidad de escritura en pocos meses.",
+    "El universo tiene aproximadamente trece punto ocho mil millones de anos, formado en un evento conocido como el Big Bang. Desde ese momento, la materia se ha agrupado bajo la influencia de la gravedad para formar estrellas, galaxias y planetas. Nuestro sol es una estrella de mediana edad ubicada en el brazo exterior de la Via Lactea y tiene combustible suficiente para arder por otros cinco mil millones de anos.",
+    "Aprender un nuevo idioma abre puertas que antes estaban cerradas para ti. Te permite conectarte con personas de diferentes culturas, leer literatura en su forma original y pensar de maneras que tu idioma nativo quizas no exprese facilmente. Las investigaciones sugieren que las personas bilingues muestran mayor flexibilidad cognitiva y pueden retrasar la aparicion de demencia en la vejez.",
+    "La historia de la informatica abarca menos de un siglo, pero su impacto en la civilizacion humana rivaliza con el de la imprenta y la revolucion industrial combinados. Desde maquinas del tamano de una habitacion que apenas realizaban aritmetica basica hasta dispositivos de bolsillo con mas poder de procesamiento que las primeras supercomputadoras, la tecnologia ha transformado como trabajamos, nos comunicamos y entendemos el mundo que nos rodea."
+  ]
+};
+
+var SENTENCES={
+  en:['The quick brown fox jumps over the lazy dog near the river bank.','Practice makes perfect when it comes to typing on a keyboard.','Technology advances rapidly and shapes the way we live and work.','Learning to type well is one of the most useful skills you can develop.','Consistent daily practice is the secret to mastering the keyboard.'],
+  pt:['A raposa marrom pula sobre o cachorro preguicoso perto do rio.','Praticar todos os dias e o segredo para dominar o teclado rapidamente.','A tecnologia avanca rapidamente e muda a forma como vivemos e trabalhamos.','Aprender a digitar bem e uma das habilidades mais uteis que voce pode ter.','Com paciencia e dedicacao voce pode alcancar qualquer objetivo que desejar.'],
+  es:['El veloz zorro marron salta sobre el perro perezoso cerca del rio.','Practicar todos los dias es el secreto para dominar el teclado rapidamente.','La tecnologia avanza rapidamente y cambia la forma en que vivimos y trabajamos.','Aprender a escribir bien es una de las habilidades mas utiles que puedes tener.','Con paciencia y dedicacion puedes alcanzar cualquier objetivo que te propongas.']
+};
+
+// =============================================================
+// SETTINGS LAYER
+// =============================================================
+var Settings={lang:'en',time:30,diff:'easy',mode:'words'};
+var AppSettings={
+  darkMode:false,soundOn:false,soundStyle:'typewriter',
+  fontSize:'md',cursorStyle:'beam'
+};
+
+try{var saved=JSON.parse(localStorage.getItem('typara_app_settings')||'{}');
+  Object.assign(AppSettings,saved);}catch(e){}
+
+function saveAppSettings(){
+  localStorage.setItem('typara_app_settings',JSON.stringify(AppSettings));
+}
+
+// Apply saved settings on load
+function applyAppSettings(){
+  if(AppSettings.darkMode){
+    document.body.classList.add('dark');
+    var tog=document.getElementById('toggleDark');
+    if(tog) tog.checked=true;
+  }
+  if(AppSettings.soundOn){
+    var tog=document.getElementById('toggleSound');
+    if(tog) tog.checked=true;
+  }
+  // Font size
+  setFontSizeOnly(AppSettings.fontSize);
+  var fsbtns=document.querySelectorAll('#fontSizeBtns .settings-btn');
+  fsbtns.forEach(function(b){ b.classList.remove('active'); });
+  var fsmap={'sm':0,'md':1,'lg':2};
+  if(fsbtns[fsmap[AppSettings.fontSize]]) fsbtns[fsmap[AppSettings.fontSize]].classList.add('active');
+  // Cursor
+  setCursorOnly(AppSettings.cursorStyle);
+  var cbtns=document.querySelectorAll('#cursorBtns .settings-btn');
+  cbtns.forEach(function(b){ b.classList.remove('active'); });
+  var cmap={'beam':0,'block':1,'underline':2};
+  if(cbtns[cmap[AppSettings.cursorStyle]]) cbtns[cmap[AppSettings.cursorStyle]].classList.add('active');
+  // Sound style
+  var sbtns=document.querySelectorAll('#soundStyleBtns .settings-btn');
+  sbtns.forEach(function(b){ b.classList.remove('active'); });
+  var ssmap={'typewriter':0,'soft':1,'mechanical':2};
+  if(sbtns[ssmap[AppSettings.soundStyle]]) sbtns[ssmap[AppSettings.soundStyle]].classList.add('active');
+}
+
+// =============================================================
+// SETTINGS PANEL
+// =============================================================
+function openSettings(){
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.getElementById('settingsBtn').classList.add('active-icon');
+}
+function closeSettings(){
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('settingsBtn').classList.remove('active-icon');
+}
+function handleOverlayClick(e){
+  if(e.target===document.getElementById('settingsOverlay')) closeSettings();
+}
+function toggleDarkMode(on){
+  AppSettings.darkMode=on;
+  document.body.classList.toggle('dark',on);
+  saveAppSettings();
+}
+function toggleSound(on){
+  AppSettings.soundOn=on;
+  saveAppSettings();
+  if(on) playClick(); // preview
+}
+function setSoundStyle(style,btn){
+  AppSettings.soundStyle=style;
+  saveAppSettings();
+  document.querySelectorAll('#soundStyleBtns .settings-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  if(AppSettings.soundOn) playClick(); // preview
+}
+function setFontSizeOnly(size){
+  var tb=document.getElementById('textBox');
+  if(!tb) return;
+  tb.classList.remove('font-sm','font-md','font-lg');
+  tb.classList.add('font-'+size);
+}
+function setFontSize(size,btn){
+  AppSettings.fontSize=size;
+  saveAppSettings();
+  setFontSizeOnly(size);
+  document.querySelectorAll('#fontSizeBtns .settings-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+function setCursorOnly(style){
+  document.body.classList.remove('cursor-beam','cursor-block','cursor-underline');
+  document.body.classList.add('cursor-'+style);
+}
+function setCursorStyle(style,btn){
+  AppSettings.cursorStyle=style;
+  saveAppSettings();
+  setCursorOnly(style);
+  document.querySelectorAll('#cursorBtns .settings-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+// =============================================================
+// SOUND ENGINE — Audio elements with embedded WAV
+// =============================================================
+var SOUND_DATA={
+  typewriter:'data:audio/wav;base64,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',
+  soft:'data:audio/wav;base64,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',
+  mechanical:'data:audio/wav;base64,UklGRpwJAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YXgJAADD4w4ZLBxuMtHo/fA+6rn1wDFd704eGfxRBmsW50O3Km7p7wVz921Fqz0CPMU8hDKkRmg0D/rINgkPXinuE40Eg/wPAiz1YODUJvgjRTZsGL8KLB7k4eUXtwGk6FzsowwB9E0JyBhaBubuqRJM/An+3/t3Ddjzkyp9R+YU2jP8Ry/4sQGcPYBArS4MBCYaikFNQh46EQU7PMYRyy36+oNAzR9SKOf7YBzYFz4XtAKyH8X+6/lO7nQXhugC8f/jURH7CbMI7OBkAPn4xOU530ssX+mz98z1RQ+c6MkGp/8YIwrm/v5jC3UukQ25CggZLv4369YMxikqHc/6WxhQI135nA+2/jr2Wvi/8dj6qOQH/BnmIxJ3Btfd7A9y6K36qf5p7+jrsvT24BQPm96NC+bkIupl7y/ZO9/W7QLz8A0JFX7byPmV4asKH+6fED38ueMN3c/rehDK5jv6PPTj8jwNoutrCGUFbxTZ/BMT//cb/2QBFQ3OD5fkceWU+igJqfmu7JcP0utP4C/ey9zzAGLgxf9FB+MN6wMw8Dr65gQE/8LphAE54WnrqA0Y9H7qGwQ19AzfzeBX7E3wiw047RwKnAp59r0RQAew+r3wMfqODhP+t+4Z9737Du8tAEnoIQvG7nXrqwBV9EkNYfxS/ZgKBfB8BkcC5fgTD9Xnygr37LoJi+2O6en7QA1Q8rj7wwBo8g/+sOlb+9EHqPdV8xztlQZc/FYP+Qjx8BgQABHqDK4NUAj+CTUIlAWM+T319gpcBv/yIggKB48D6gxzEPr+JA4OA4UF/P/NEecALhIk/WUIZxCSCCf+L/R8AVP/dQxqC/QRXwAx/y4ELArC9DL5F/ff/Db8ShGY+VAQl/zw+cQRv/ak90n4lPZcAEH7yvmm9fwJ4/ZX/CwGdA/rCFIKCgrBDEUOVfpy92cHbgRkBI0LjvoqCVIBEgEg/Af9+AQoBIANlfwVCIr3IgYZ+UwL/A1j+60Ja/qZ/Gf3BQB096AGWQNx/6wG0fpI/Rj+PvXuCnf31PezCCwJQwCm//L4tfX5AXb7S/nbCjv2J/4PB90GMPiUBnAC2QPHCmoH2wKIBkUAfAEyB78CXf2T9RUGU/wl/g37qABS/VoGPAFrAAUF3v3N/yUEhgPpA9oGFgAEAKv4v/mb/eP+xwb29QL8oAMu/rQFd/gzBLj9UQCs9jr9uwRyAz4AoP2K9rACCf4UAwIBMP2rBU/4EAd79x0HTQDT/VMG4/7J/gH3sgPuABT67/cg/cwFqwTc/bP24QOC+ToCbv4EBr74PAMOAsj2m/9T+7gB8QVOAaT+YwDo+lr++/hRAlX4bP8w+ggAc/gS+AoBdwL6BN4BjQYU+jABTgGp+i76p/u2/3YDXwJoAHn5gAKV/9X6DAHt+8/8xf7ZAiH6r/7q+8MBsgNj/G0CE//g+6v8GwCcA/sAS/lTA8cA0P6P/B7/SwIT/Xn7rARQ/8v63ARf+4P+nAEsAgAFZPwYAcYE7v/XAvT/3gKrBYf+GgOe/s8EZANxBJwEeAFuBZP8OAG2+1ABcgIQ/skDgv8l/R79PAEt/5z7Xf5lBSEAVQKr/wL8mQF8/Zz8qQFCAo/7+gS4+zL91f55A+4C7wLh/5IEB/0FBUT8R/36AiUDOQI5/gUEuADa/df8EgV8/P39PP8YBIEDlAOrASH8lgK5/WMEjwSh/GwCKf75/JgD3/+a/tkApvyu/5ABWQMo/Y0DB/3d/en+kf3x/IMBcP/C/VwAQP2sAeUD+f+d/27/Lv+L/7v9pP6mAQgA6fyA/boCEP+cAgIBDwEQ/7IAe/82AE0DPf0A/u4CFAM+Ao8CN/2FAVz9YwI9/+D/EwDr/V8AXgKQ/33/AP/S/XP+HALvAgv/ef7N/jYCUv7P/av+Nv2a/Sb+ywCJAlb+jv5gAO/8UP1JAJ//7/5S//D8ZP7m/Ub+Rv2vAfr8Uf/n/Rf+TwF2AnkC1v4IAGn/bP1b/2kAOf9dAXz/pf7yASkAcv73Aav/VACc/7EBAgF7/xT/NgGNAVMAugHy/17/3/6i/g7+9QEWAL39YP51/1oBmQEfAdf+gP8HAlL/lQC3/cf/6P/RAQ4CEgEa/6AB0gHw/Y3/IgAD/7r+MgGZ/iYAxP2///oBuv0y/q4BvAH1/wz/Ef/wAEgAuP/BAEL+ff+LAa4B6P8jAY4BEACG/mD+rgBb/xoAK/7KASD/iwB/AHX/4/5EAFz/Zv7K/kb+jwHq/qEBfgDDAfD/JP+D/oAAxgC2AI0Bmv6VAMsApQEs/5kBYv5gAHb/IQDu/qv/jP/y/7//HP/y/vf/uwE+Aef+hQDn/oD/tQGN/8j+RwBcAB0AhQEfAKf/Kf9XANoAGAC//1D/JwGaAVgAuwCN/wz/v/5vAFUBpgCYACQB0v/f/2D/CgGgACQA3wBAAcb+Rf/6/6sAV//n/4MAff+GANn+0f9uAAoBFAB+AHwAcQDr/4//EP8PAcMAbwCyAI//Nf8eAPT/aQD6AMP/t/+LAPwAMQBCAP0ADgHq/i0BCv8kAAQAKgFi/+/+GQHp/+r/1/99/+r+IgBa/wAAIQEYAZH/oP8m/zsASP8q/+gAHgDXAF7/Sf8nAGUAS//9/xwA+/+X/97/Kv8k/xD/qgB2/1UAMf/BAAX/lwAJAMoAwAAC/xb/e/8U/68ASP9QANQAXADrAEAAw//dAHD/EgDQ/w0Amf/RAN4AVAD3/8kAxgAo/6gARf8//4j/vv/x/8MAXP84APr/U//RAK0Atf+YAOP/QgCvADMAvv88/+v/GQCb/xkAMf+U//L/8/9NAI3/ov9YAKT/b/8rAMD/HgCzALMAbACzAGwAxv+hAG3/jv///27/IwANAJD/VgBj//n/q/+cAHz/0v9KALf/cgB0/2j/Uv8RAPj/CgD1/4EAnf+G/6n/cABpAH3/WP+jAJwAtv8KAGv/AwCW/zwAkv8VAMr//P+QAAgAlwBHAKz/tf9kAFcAlP9hAMX/FgB5AIAAof+Y/73/IQCMAC8ATwBgAPz/3/9YACUAcQCQAPr/1/+a/xoA0P/Q/wQAQgA1APn/LAAlAHMANABgAL7/YACB/1YAhP8fAMn/rP9CAKb/MQCZ/7n/6f8VACsA4f9eAI7/t//p/x4AKABhAN//JQAwALL/5P/2/xoACQCu/77/2/+j/0EAXQA3AMP/FgCZ/8H/y/8XABQACwC3/wIAOABTAOb/9/9RAKD/FwA='
+};
+var soundElements={};
+
+function getSound(style){
+  if(!soundElements[style]){
+    var a=new Audio(SOUND_DATA[style]);
+    a.volume=0.6;
+    soundElements[style]=a;
+  }
+  return soundElements[style];
+}
+
+function playClick(){
+  if(!AppSettings.soundOn) return;
+  try{
+    var style=AppSettings.soundStyle||'typewriter';
+    var snd=getSound(style);
+    snd.currentTime=0;
+    snd.play().catch(function(){});
+  }catch(e){}
+}
+
+// =============================================================
+// I18N LAYER
+// =============================================================
+var I18N={
+  en:{
+    tagline:'Test your typing speed. Track your progress. Master your keyboard.',
+    'lbl-time':'TIME','lbl-diff':'DIFFICULTY','lbl-mode':'MODE',
+    'lbl-wpm':'WPM','lbl-acc':'ACCURACY','lbl-chars':'CHARACTERS','lbl-errors':'ERRORS',
+    'lbl-hint':'Click Start, then type the words above. Press Backspace to correct mistakes.',
+    'lbl-best':'BEST SPEED','lbl-avgacc':'AVG ACCURACY','lbl-tests-unit':'tests','lbl-total':'TOTAL TESTS',
+    'lbl-progress':'Progress Overview','lbl-wpm2':'WPM','lbl-wpm3':'WPM','lbl-acc2':'Accuracy','lbl-con':'Consistency',
+    'lbl-activity':'Practice Activity','lbl-less':'Less','lbl-more':'More',
+    'lbl-kb':'Keyboard Mastery','lbl-kb-sub':'Darker = faster. White = not yet practiced.',
+    'kbt-speed':'Speed','kbt-acc':'Accuracy',
+    'kbTip1':'Darker blue = faster typing speed on that key.',
+    'kbTip2':'Blue = 100% accuracy. Red = lower accuracy.',
+    'kbTip3':'White keys have not been practiced yet.',
+    'lbl-charstats':'Character Statistics','lbl-charspeed':'Speed per Character',
+    'lbl-histtitle':'Test History','lbl-clear':'Clear All',
+    'tab-test':'Test','tab-stats':'My Stats','tab-history':'History',
+    'opt-easy':'Easy','opt-medium':'Medium','opt-hard':'Hard','opt-expert':'Expert',
+    'opt-words':'Words','opt-sentences':'Sentences','opt-numbers':'Numbers',
+    startBtn:'&#9654; Start',
+    results_title:'Test Complete!',
+    btn_again:'Try Again',btn_stats:'View Stats',
+    great:'New personal best!',good:'Good effort!',keep_going:'Keep practicing!',
+    fastest:'Fastest Character',slowest:'Slowest Character',
+    most_acc:'Most Accurate',least_acc:'Least Accurate'
+  },
+  pt:{
+    tagline:'Teste sua velocidade de digitacao. Acompanhe seu progresso. Domine o teclado.',
+    'lbl-time':'TEMPO','lbl-diff':'DIFICULDADE','lbl-mode':'MODO',
+    'lbl-wpm':'PPM','lbl-acc':'PRECISAO','lbl-chars':'CARACTERES','lbl-errors':'ERROS',
+    'lbl-hint':'Clique em Iniciar, depois digite as palavras acima. Use Backspace para corrigir.',
+    'lbl-best':'MELHOR VELOCIDADE','lbl-avgacc':'PRECISAO MEDIA','lbl-tests-unit':'testes','lbl-total':'TOTAL DE TESTES',
+    'lbl-progress':'Visao Geral','lbl-wpm2':'PPM','lbl-wpm3':'PPM','lbl-acc2':'Precisao','lbl-con':'Consistencia',
+    'lbl-activity':'Atividade de Pratica','lbl-less':'Menos','lbl-more':'Mais',
+    'lbl-kb':'Dominio do Teclado','lbl-kb-sub':'Mais escuro = mais rapido. Branco = ainda nao praticado.',
+    'kbt-speed':'Velocidade','kbt-acc':'Precisao',
+    'kbTip1':'Azul mais escuro = maior velocidade nessa tecla.',
+    'kbTip2':'Azul = 100% de precisao. Vermelho = menor precisao.',
+    'kbTip3':'Teclas brancas ainda nao foram praticadas.',
+    'lbl-charstats':'Estatisticas por Caractere','lbl-charspeed':'Velocidade por Caractere',
+    'lbl-histtitle':'Historico de Testes','lbl-clear':'Limpar Tudo',
+    'tab-test':'Teste','tab-stats':'Minhas Estatisticas','tab-history':'Historico',
+    'opt-easy':'Facil','opt-medium':'Medio','opt-hard':'Dificil','opt-expert':'Especialista',
+    'opt-words':'Palavras','opt-sentences':'Frases','opt-numbers':'Numeros',
+    startBtn:'&#9654; Iniciar',results_title:'Teste Concluido!',
+    btn_again:'Tentar Novamente',btn_stats:'Ver Estatisticas',
+    great:'Novo recorde pessoal!',good:'Bom esforco!',keep_going:'Continue praticando!',
+    fastest:'Caractere Mais Rapido',slowest:'Caractere Mais Lento',
+    most_acc:'Mais Preciso',least_acc:'Menos Preciso'
+  },
+  es:{
+    tagline:'Prueba tu velocidad de escritura. Rastrea tu progreso. Domina el teclado.',
+    'lbl-time':'TIEMPO','lbl-diff':'DIFICULTAD','lbl-mode':'MODO',
+    'lbl-wpm':'PPM','lbl-acc':'PRECISION','lbl-chars':'CARACTERES','lbl-errors':'ERRORES',
+    'lbl-hint':'Haz clic en Iniciar, luego escribe las palabras de arriba. Usa Retroceso para corregir.',
+    'lbl-best':'MEJOR VELOCIDAD','lbl-avgacc':'PRECISION PROMEDIO','lbl-tests-unit':'pruebas','lbl-total':'TOTAL DE PRUEBAS',
+    'lbl-progress':'Resumen de Progreso','lbl-wpm2':'PPM','lbl-wpm3':'PPM','lbl-acc2':'Precision','lbl-con':'Consistencia',
+    'lbl-activity':'Actividad de Practica','lbl-less':'Menos','lbl-more':'Mas',
+    'lbl-kb':'Dominio del Teclado','lbl-kb-sub':'Mas oscuro = mas rapido. Blanco = aun no practicado.',
+    'kbt-speed':'Velocidad','kbt-acc':'Precision',
+    'kbTip1':'Azul mas oscuro = mayor velocidad en esa tecla.',
+    'kbTip2':'Azul = 100% de precision. Rojo = menor precision.',
+    'kbTip3':'Las teclas blancas aun no han sido practicadas.',
+    'lbl-charstats':'Estadisticas por Caracter','lbl-charspeed':'Velocidad por Caracter',
+    'lbl-histtitle':'Historial de Pruebas','lbl-clear':'Borrar Todo',
+    'tab-test':'Prueba','tab-stats':'Mis Estadisticas','tab-history':'Historial',
+    'opt-easy':'Facil','opt-medium':'Medio','opt-hard':'Dificil','opt-expert':'Experto',
+    'opt-words':'Palabras','opt-sentences':'Oraciones','opt-numbers':'Numeros',
+    startBtn:'&#9654; Iniciar',results_title:'Prueba Completada!',
+    btn_again:'Intentar de Nuevo',btn_stats:'Ver Estadisticas',
+    great:'Nuevo record personal!',good:'Buen esfuerzo!',keep_going:'Sigue practicando!',
+    fastest:'Caracter Mas Rapido',slowest:'Caracter Mas Lento',
+    most_acc:'Mas Preciso',least_acc:'Menos Preciso'
+  }
+};
+
+function t(key){return(I18N[Settings.lang]||I18N.en)[key]||key;}
+
+function applyLang(){
+  Object.keys(I18N.en).forEach(function(key){
+    var el=document.getElementById(key);
+    if(!el) return;
+    var val=t(key);
+    if(val.indexOf('&#')!==-1) el.innerHTML=val;
+    else el.textContent=val;
+  });
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  var lb=document.getElementById('lang-'+Settings.lang);
+  if(lb) lb.classList.add('active');
+}
+
+function setLang(lang){
+  Settings.lang=lang;
+  storyQueue=[];
+  applyLang();
+  if(!testRunning) buildWords();
+}
+
+// =============================================================
+// UI STATE
+// =============================================================
+var testWords=[];
+var testRunning=false;
+var testDone=false;
+var timerInterval=null;
+var elapsed=0;
+var kbMode='speed';
+var testHistory=[];
+var dailyData={};
+
+try{testHistory=JSON.parse(localStorage.getItem('typara_v2_hist')||'[]');}catch(e){}
+try{dailyData=JSON.parse(localStorage.getItem('typara_v2_daily')||'{}');}catch(e){}
+
+function getBestWPM(){
+  if(!testHistory.length) return 0;
+  return Math.max.apply(null,testHistory.map(function(h){return h.wpm;}));
+}
+
+function updatePBBadge(){
+  var best=getBestWPM();
+  var wrap=document.getElementById('pbBadgeWrap');
+  var txt=document.getElementById('pbBadgeText');
+  if(!wrap||!txt) return;
+  if(best>0){
+    wrap.style.display='block';
+    txt.textContent='Best: '+best+' WPM';
+  } else {
+    wrap.style.display='none';
+  }
+}
+
+// =============================================================
+// SETTINGS CONTROLS
+// =============================================================
+function setTime(t,btn){
+  if(testRunning) return;
+  Settings.time=t;
+  document.querySelectorAll('#opt-15,#opt-30,#opt-60,#opt-90,#opt-120,#opt-300,#opt-600,#opt-0').forEach(function(b){if(b)b.classList.remove('active');});
+  btn.classList.add('active');
+  resetTest();
+}
+
+function setDiff(d,btn){
+  if(testRunning) return;
+  Settings.diff=d;
+  storyQueue=[];
+  document.querySelectorAll('#opt-easy,#opt-medium,#opt-hard,#opt-expert').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  buildWords();
+}
+
+function setMode(m,btn){
+  if(testRunning) return;
+  Settings.mode=m;
+  storyQueue=[];// reset queue when mode changes
+  document.querySelectorAll('#opt-words,#opt-sentences,#opt-paragraphs,#opt-numbers,#opt-stories').forEach(function(b){if(b)b.classList.remove('active');});
+  btn.classList.add('active');
+  buildWords();
+}
+
+// =============================================================
+// WORD BUILDING
+// =============================================================
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp;}
+  return a;
+}
+
+function buildWords(){
+  var chars=[];
+  var target=Settings.time>0?Math.max(500,Settings.time*8):2000;
+  if(Settings.mode==='stories'){
+    var target=Settings.time>0?Math.max(300,Settings.time*8):5000;
+    var text='';
+    while(text.length<target){
+      text+=getNextStory()+'  ';
+    }
+    chars=text.trim().split('');
+  } else if(Settings.mode==='paragraphs'){
+    var pool=shuffle((PARAGRAPHS[Settings.lang]||PARAGRAPHS.en).slice());
+    var text='';var i=0;
+    while(text.length<target){text+=pool[i%pool.length]+'  ';i++;}
+    chars=text.trim().split('');
+  } else if(Settings.mode==='numbers'){
+    var nums=[];
+    while(nums.length<120) nums.push(String(Math.floor(Math.random()*9000)+1000));
+    chars=nums.join(' ').split('');
+  } else if(Settings.mode==='sentences'){
+    var pool=shuffle((SENTENCES[Settings.lang]||SENTENCES.en).slice());
+    var text='';var i=0;
+    while(text.length<target){text+=pool[i%pool.length]+' ';i++;}
+    chars=text.trim().split('');
+  } else {
+    var pool=(WORDS[Settings.lang]||WORDS.en)[Settings.diff]||WORDS.en.easy;
+    var shuffled=shuffle(pool);
+    var picks=[];
+    var count=Math.max(200,target/5);
+    for(var i=0;i<count;i++) picks.push(shuffled[i%shuffled.length]);
+    chars=picks.join(' ').split('');
+  }
+  testWords=chars;
+  Engine.reset(chars);
+  renderText();
+}
+
+// =============================================================
+// TEXT RENDERING
+// =============================================================
+function renderText(){
+  var box=document.getElementById('textBox');
+  box.innerHTML='';
+  testWords.forEach(function(c,i){
+    var span=document.createElement('span');
+    span.className='ch '+(i===0?'cursor':'pending');
+    span.id='c'+i;
+    span.textContent=c;
+    box.appendChild(span);
+  });
+}
+
+function updateChar(pos,state){
+  var el=document.getElementById('c'+pos);
+  if(!el) return;
+  el.className='ch '+state;
+}
+
+// =============================================================
+// TEST CONTROL
+// =============================================================
+function startTest(){
+  if(testRunning) return;
+  testRunning=true;testDone=false;elapsed=0;
+  document.getElementById('textBox').classList.add('active-test');
+  document.getElementById('startBtn').disabled=true;
+  document.querySelector('.options-row').style.opacity='0.4';
+  document.querySelector('.options-row').style.pointerEvents='none';
+  document.getElementById('timerText').textContent=Settings.time===0?'\u221e':Settings.time;
+  document.getElementById('timerRing').classList.remove('urgent');
+  document.getElementById('timerArc').style.strokeDashoffset='0';
+  document.addEventListener('keydown',handleKey);
+  timerInterval=setInterval(timerTick,1000);
+}
+
+function resetTest(){
+  clearInterval(timerInterval);
+  testRunning=false;testDone=false;elapsed=0;
+  document.removeEventListener('keydown',handleKey);
+  document.getElementById('textBox').classList.remove('active-test','done-test');
+  document.getElementById('startBtn').disabled=false;
+  var optRow=document.querySelector('.options-row');
+  if(optRow){optRow.style.opacity='1';optRow.style.pointerEvents='auto';}
+  document.getElementById('timerText').textContent=Settings.time===0?'\u221e':Settings.time;
+  document.getElementById('timerRing').classList.remove('urgent');
+  document.getElementById('timerArc').style.strokeDashoffset='0';
+  document.getElementById('liveWPM').textContent='0';
+  document.getElementById('liveAcc').textContent='100%';
+  document.getElementById('liveChars').textContent='0';
+  document.getElementById('liveErrors').textContent='0';
+  buildWords();
+}
+
+// =============================================================
+// KEY HANDLER
+// =============================================================
+function handleKey(e){
+  if(!testRunning||testDone) return;
+  if(e.ctrlKey||e.altKey||e.metaKey) return;
+  if(e.key==='Tab'){e.preventDefault();return;}
+  var result=Engine.processKey(e.key);
+  if(result===null) return;
+  e.preventDefault();
+  // Play sound
+  if(result.backspace||result.correct!==undefined) playClick();
+  var stats=Engine.getStats();
+  if(result.backspace){
+    updateChar(result.pos,'cursor');
+    updateChar(result.pos+1,'pending');
+  } else {
+    updateChar(result.pos-1,result.correct?'correct':'wrong');
+    if(!result.done) updateChar(result.pos,'cursor');
+  }
+  document.getElementById('liveWPM').textContent=stats.wpm;
+  document.getElementById('liveAcc').textContent=stats.accuracy+'%';
+  document.getElementById('liveChars').textContent=stats.correct;
+  document.getElementById('liveErrors').textContent=stats.wrong;
+  var cur=document.getElementById('c'+stats.pos);
+  if(cur){
+    var box=document.getElementById('textBox');
+    var cursorTop=cur.offsetTop;
+    var cursorBottom=cursorTop+cur.offsetHeight;
+    var boxScrollTop=box.scrollTop;
+    var boxHeight=box.clientHeight;
+    if(cursorBottom>boxScrollTop+boxHeight*0.5){
+      box.scrollTop=cursorTop-boxHeight*0.25;
+    }
+  }
+  if(result.done) endTest();
+}
+
+// =============================================================
+// TIMER
+// =============================================================
+function timerTick(){
+  elapsed++;
+  var circ=213.6;
+  if(Settings.time===0){
+    var m=Math.floor(elapsed/60);
+    var s=elapsed%60;
+    document.getElementById('timerText').textContent=m+':'+(s<10?'0':'')+s;
+    document.getElementById('timerArc').style.strokeDashoffset=circ;
+  } else {
+    var remaining=Settings.time-elapsed;
+    document.getElementById('timerText').textContent=remaining;
+    document.getElementById('timerArc').style.strokeDashoffset=(elapsed/Settings.time)*circ;
+    if(remaining<=5) document.getElementById('timerRing').classList.add('urgent');
+    if(remaining<=0){endTest();return;}
+  }
+  document.getElementById('liveWPM').textContent=Engine.getWPM(elapsed);
+}
+
+// =============================================================
+// END TEST
+// =============================================================
+function endTest(){
+  clearInterval(timerInterval);
+  document.removeEventListener('keydown',handleKey);
+  testRunning=false;testDone=true;
+  document.getElementById('textBox').classList.remove('active-test');
+  document.getElementById('textBox').classList.add('done-test');
+  document.getElementById('startBtn').disabled=false;
+  var stats=Engine.getStats();
+  var wpm=Engine.getWPM(elapsed||Settings.time);
+  var acc=Engine.getAccuracy();
+  var prevBest=getBestWPM();
+  var isNewBest=(wpm>prevBest);
+  var entry={wpm:wpm,acc:acc,errors:stats.wrong,time:Settings.time,diff:Settings.diff,
+    mode:Settings.mode,lang:Settings.lang,chars:stats.correct,
+    date:new Date().toLocaleDateString(),ts:Date.now(),charData:stats.charData};
+  testHistory.unshift(entry);
+  if(testHistory.length>100) testHistory.pop();
+  localStorage.setItem('typara_v2_hist',JSON.stringify(testHistory));
+  var today=new Date().toISOString().slice(0,10);
+  if(!dailyData[today]) dailyData[today]={tests:0,wpmTotal:0};
+  dailyData[today].tests++;
+  dailyData[today].wpmTotal+=wpm;
+  localStorage.setItem('typara_v2_daily',JSON.stringify(dailyData));
+  updatePBBadge();
+  showResults(wpm,acc,entry,isNewBest);
+}
+
+// =============================================================
+// RESULTS OVERLAY
+// =============================================================
+function showResults(wpm,acc,entry,isNewBest){
+  var msg=isNewBest?t('great'):wpm>=35?t('good'):t('keep_going');
+  var circ=2*Math.PI*48;
+  var offset=circ-(acc/100)*circ;
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  var isDark=document.body.classList.contains('dark');
+  var cardBg=isDark?'#202124':'#fff';
+  var cardText=isDark?'#e8eaed':'#212121';
+  var cardMuted=isDark?'#9aa0a6':'#757575';
+  var cardBg2=isDark?'#2d2d30':'#f5f5f5';
+  var box=document.createElement('div');
+  box.style.cssText='background:'+cardBg+';border-radius:16px;padding:36px;max-width:400px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+  var titleEl=document.createElement('div');
+  titleEl.style.cssText='font-size:12px;font-weight:700;letter-spacing:2px;color:#0097a7;margin-bottom:6px;';
+  titleEl.textContent=t('results_title');
+  var msgEl=document.createElement('div');
+  msgEl.style.cssText='font-size:14px;color:'+cardMuted+';margin-bottom:22px;';
+  msgEl.textContent=msg;
+  if(isNewBest){
+    var bestTag=document.createElement('span');
+    bestTag.className='new-best-tag';
+    bestTag.textContent='NEW BEST';
+    msgEl.appendChild(bestTag);
+  }
+  var grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px;';
+  function makeCard(val,lbl,color){
+    var d=document.createElement('div');
+    d.style.cssText='background:'+cardBg2+';border-radius:10px;padding:16px;';
+    d.innerHTML='<div style="font-size:34px;font-weight:900;color:'+color+';">'+val+'</div>'
+      +'<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:'+cardMuted+';margin-top:4px;">'+lbl+'</div>';
+    return d;
+  }
+  grid.appendChild(makeCard(wpm,t('lbl-wpm'),'#0097a7'));
+  var donutCard=document.createElement('div');
+  donutCard.style.cssText='background:'+cardBg2+';border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;';
+  donutCard.innerHTML='<svg width="68" height="68" viewBox="0 0 120 120">'
+    +'<circle fill="none" stroke="#b2ebf2" stroke-width="14" cx="60" cy="60" r="48"/>'
+    +'<circle fill="none" stroke="#0097a7" stroke-width="14" cx="60" cy="60" r="48"'
+    +' stroke-linecap="round" stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'"'
+    +' transform="rotate(-90 60 60)"/>'
+    +'<text x="60" y="60" text-anchor="middle" dominant-baseline="middle" font-size="22" font-weight="800" fill="#0097a7">'+acc+'%</text>'
+    +'</svg>'
+    +'<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:'+cardMuted+';margin-top:2px;">'+t('lbl-acc')+'</div>';
+  grid.appendChild(donutCard);
+  grid.appendChild(makeCard(entry.errors,t('lbl-errors'),'#e53935'));
+  var btnRow=document.createElement('div');
+  btnRow.style.cssText='display:flex;gap:10px;justify-content:center;';
+  var btn1=document.createElement('button');
+  btn1.style.cssText='background:#0097a7;color:#fff;border:none;border-radius:8px;padding:11px 26px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
+  btn1.textContent=t('btn_again');
+  btn1.addEventListener('click',function(){document.body.removeChild(overlay);resetTest();});
+  var btn2=document.createElement('button');
+  btn2.style.cssText='background:'+cardBg+';color:#0097a7;border:2px solid #0097a7;border-radius:8px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
+  btn2.textContent=t('btn_stats');
+  btn2.addEventListener('click',function(){document.body.removeChild(overlay);showScreen('stats');});
+  btnRow.appendChild(btn1);btnRow.appendChild(btn2);
+  box.appendChild(titleEl);box.appendChild(msgEl);box.appendChild(grid);box.appendChild(btnRow);
+  overlay.appendChild(box);document.body.appendChild(overlay);
+}
+
+// =============================================================
+// SCREENS
+// =============================================================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+  var s=document.getElementById('screen-'+id);
+  var tab=document.getElementById('tab-'+id);
+  if(s) s.classList.add('active');
+  if(tab) tab.classList.add('active');
+  if(id==='stats') renderStats();
+  if(id==='history') renderHistory();
+}
+
+// =============================================================
+// STATS RENDERING — FIXED: uses testHistory.length not history.length
+// =============================================================
+function renderStats(){
+  if(!testHistory.length){renderHeatmap();renderKeyboard({});return;}
+  var bestWPM=Math.max.apply(null,testHistory.map(function(h){return h.wpm;}));
+  var avgAcc=Math.round(testHistory.reduce(function(s,h){return s+h.acc;},0)/testHistory.length);
+  document.getElementById('statBestWPM').textContent=bestWPM;
+  document.getElementById('statTests').textContent=testHistory.length;
+  var circ=301.6;
+  var filled=(avgAcc/100)*circ;
+  document.getElementById('accDonut').setAttribute('stroke-dasharray',filled+' '+(circ-filled));
+  document.getElementById('accDonutTxt').textContent=avgAcc+'%';
+  var avgWPM=Math.round(testHistory.reduce(function(s,h){return s+h.wpm;},0)/testHistory.length);
+  document.getElementById('pbWPM').style.width=Math.min(100,avgWPM)+'%';
+  document.getElementById('pbWPMVal').textContent=avgWPM+' / 100';
+  document.getElementById('pbAcc').style.width=avgAcc+'%';
+  document.getElementById('pbAccVal').textContent=avgAcc+'%';
+  var recent=testHistory.slice(0,10).map(function(h){return h.wpm;});
+  var mean=recent.reduce(function(a,b){return a+b;},0)/recent.length;
+  var stdDev=Math.sqrt(recent.reduce(function(s,v){return s+Math.pow(v-mean,2);},0)/recent.length);
+  var con=mean>0?Math.max(0,Math.round(100-(stdDev/mean)*100)):100;
+  document.getElementById('pbCon').style.width=con+'%';
+  document.getElementById('pbConVal').textContent=con+'%';
+  renderHeatmap();renderKeyboardFromHistory();renderCharStats();
+}
+
+function renderHeatmap(){
+  var grid=document.getElementById('hmGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  for(var i=29;i>=0;i--){
+    var d=new Date(Date.now()-i*86400000);
+    var key=d.toISOString().slice(0,10);
+    var data=dailyData[key];
+    var tests=data?data.tests:0;
+    var cell=document.createElement('div');
+    cell.className='hm-cell';
+    cell.style.background=tests===0?'var(--border)':tests===1?'#b2ebf2':tests<=3?'#4dd0e1':'#0097a7';
+    if(i===0) cell.style.outline='2px solid #0097a7';
+    cell.title=key+(tests?': '+tests+' test'+(tests>1?'s':''):'');
+    grid.appendChild(cell);
+  }
+}
+
+function mergeCharData(){
+  var merged={};
+  testHistory.forEach(function(h){
+    if(!h.charData) return;
+    Object.keys(h.charData).forEach(function(c){
+      if(!merged[c]) merged[c]={correct:0,total:0,totalMs:0};
+      merged[c].correct+=h.charData[c].correct||0;
+      merged[c].total+=h.charData[c].total||0;
+      merged[c].totalMs+=h.charData[c].totalMs||0;
+    });
+  });
+  return merged;
+}
+
+function renderKeyboardFromHistory(){renderKeyboard(mergeCharData());}
+
+function renderKeyboard(charData){
+  var rows=[['q','w','e','r','t','y','u','i','o','p'],['a','s','d','f','g','h','j','k','l'],['z','x','c','v','b','n','m']];
+  var maxSpeed=0;
+  Object.keys(charData).forEach(function(c){
+    var d=charData[c];
+    if(d.totalMs>0&&d.correct>1){var wpm=Math.round((d.correct/(d.totalMs/1000))*12);if(wpm>maxSpeed)maxSpeed=wpm;}
+  });
+  var isDark=document.body.classList.contains('dark');
+  var container=document.getElementById('kbViz');
+  container.innerHTML='';
+  rows.forEach(function(row,ri){
+    var rowEl=document.createElement('div');
+    rowEl.className='kb-row';
+    if(ri===1) rowEl.style.paddingLeft='20px';
+    if(ri===2) rowEl.style.paddingLeft='40px';
+    row.forEach(function(key){
+      var keyEl=document.createElement('div');
+      keyEl.className='kb-key';
+      var d=charData[key];
+      var bg=isDark?'#2d2d30':'#ffffff';
+      var color=isDark?'#e8eaed':'#212121';
+      var spd=0;var acc=0;
+      if(d&&d.total>0){
+        acc=Math.round((d.correct/d.total)*100);
+        if(d.totalMs>0&&d.correct>1) spd=Math.round((d.correct/(d.totalMs/1000))*12);
+        if(kbMode==='speed'&&maxSpeed>0&&spd>0){
+          var t2=spd/maxSpeed;
+          var r=Math.round(0+(224-0)*(1-t2));
+          var g=Math.round(151+(224-151)*(1-t2));
+          var bv=Math.round(167+(224-167)*(1-t2));
+          bg='rgb('+r+','+g+','+bv+')';
+          if(t2>0.4) color='#fff';
+        } else if(kbMode==='acc'){
+          var r2=Math.round(229*(1-acc/100));
+          var g2=Math.round(151*(acc/100));
+          bg='rgb('+r2+','+g2+',160)';
+          color=acc>50?'#fff':'#212121';
+        }
+      }
+      keyEl.style.background=bg;keyEl.style.color=color;
+      var lbl=document.createElement('span');
+      lbl.textContent=key.toUpperCase();
+      keyEl.appendChild(lbl);
+      if(d&&(spd>0||acc>0)){
+        var sub=document.createElement('div');
+        sub.className='ks';
+        sub.textContent=kbMode==='speed'?(spd?spd+'w':''):acc+'%';
+        keyEl.appendChild(sub);
+      }
+      rowEl.appendChild(keyEl);
+    });
+    if(ri===2){
+      var sp=document.createElement('div');
+      sp.className='kb-key space-key';
+      sp.textContent='SPACE';
+      rowEl.appendChild(sp);
+    }
+    container.appendChild(rowEl);
+  });
+}
+
+function setKBMode(mode,btn){
+  kbMode=mode;
+  document.querySelectorAll('.kb-toggle-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderKeyboardFromHistory();
+}
+
+function renderCharStats(){
+  var charData=mergeCharData();
+  var chars=Object.keys(charData).filter(function(c){return charData[c].total>=3&&c.trim();});
+  if(!chars.length) return;
+  var speeds={},accs={};
+  chars.forEach(function(c){
+    var d=charData[c];
+    accs[c]=Math.round((d.correct/d.total)*100);
+    if(d.totalMs>0&&d.correct>1) speeds[c]=Math.round((d.correct/(d.totalMs/1000))*12);
+  });
+  var spKeys=Object.keys(speeds).sort(function(a,b){return(speeds[b]||0)-(speeds[a]||0);});
+  var acKeys=Object.keys(accs).sort(function(a,b){return accs[b]-accs[a];});
+  var list=document.getElementById('charStatsList');
+  if(list){
+    var rows=[
+      {label:t('fastest'),val:spKeys[0]?(spKeys[0].toUpperCase()+' — '+speeds[spKeys[0]]+' WPM'):'—'},
+      {label:t('slowest'),val:spKeys.length>1?(spKeys[spKeys.length-1].toUpperCase()+' — '+speeds[spKeys[spKeys.length-1]]+' WPM'):'—'},
+      {label:t('most_acc'),val:acKeys[0]?(acKeys[0].toUpperCase()+' — '+accs[acKeys[0]]+'%'):'—'},
+      {label:t('least_acc'),val:acKeys.length>1?(acKeys[acKeys.length-1].toUpperCase()+' — '+accs[acKeys[acKeys.length-1]]+'%'):'—'}
+    ];
+    list.innerHTML=rows.map(function(r){
+      return '<div class="char-stat-row"><span style="color:var(--muted);">'+r.label+'</span><span style="font-weight:700;color:#0097a7;">'+r.val+'</span></div>';
+    }).join('');
+  }
+  var chart=document.getElementById('charBarChart');
+  if(!chart) return;
+  chart.innerHTML='';
+  var maxSpd=Math.max.apply(null,Object.values(speeds).filter(Boolean))||1;
+  spKeys.slice(0,12).forEach(function(c){
+    var spd=speeds[c]||0;
+    var pct=Math.round((spd/maxSpd)*100);
+    var row=document.createElement('div');
+    row.className='bar-row';
+    row.innerHTML='<div class="bar-key-lbl">'+c.toUpperCase()+'</div>'
+      +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div>'
+      +'<div class="bar-val-lbl">'+spd+' wpm</div>';
+    chart.appendChild(row);
+  });
+}
+
+// =============================================================
+// HISTORY
+// =============================================================
+function renderHistory(){
+  var el=document.getElementById('histContent');
+  if(!testHistory.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">⌨</div><div style="font-size:16px;font-weight:600;">No tests yet</div><div style="font-size:13px;margin-top:6px;">Complete a test to see your history here.</div></div>';
+    return;
+  }
+  var tbl='<table class="hist-table"><thead><tr>'
+    +'<th>#</th><th>'+t('lbl-wpm')+'</th><th>'+t('lbl-acc')+'</th>'
+    +'<th>'+t('lbl-errors')+'</th><th>TIME</th><th>'+t('lbl-diff')+'</th><th>DATE</th>'
+    +'</tr></thead><tbody>';
+  testHistory.forEach(function(h,i){
+    var wc=h.wpm>=60?'#2e7d32':h.wpm>=40?'#e65100':'var(--muted)';
+    tbl+='<tr>'
+      +'<td style="color:var(--muted);">'+(i+1)+'</td>'
+      +'<td style="font-weight:800;color:'+wc+';">'+h.wpm+'</td>'
+      +'<td>'+h.acc+'%</td>'
+      +'<td style="color:#e53935;">'+h.errors+'</td>'
+      +'<td>'+h.time+'s</td>'
+      +'<td><span class="diff-badge diff-'+h.diff+'">'+h.diff+'</span></td>'
+      +'<td style="color:var(--muted);">'+h.date+'</td>'
+      +'</tr>';
+  });
+  tbl+='</tbody></table>';
+  el.innerHTML=tbl;
+}
+
+function clearHistory(){
+  if(!confirm('Clear all history?')) return;
+  testHistory=[];dailyData={};
+  localStorage.removeItem('typara_v2_hist');
+  localStorage.removeItem('typara_v2_daily');
+  renderHistory();
+  updatePBBadge();
+}
+
+// =============================================================
+// STORIES DATA — Inspirational, wisdom & perseverance
+// =============================================================
+var STORIES={
+  en:{
+    easy:["Fall seven times. Stand up eight. The ground is not your home.","Small steps still move you forward. Never mistake slow for stopped.","You do not have to be great to start. But you have to start to be great.","Every morning is a chance. Take it before it becomes yesterday.","Hard days build strong people. Let them shape you, not stop you.","Courage is not the absence of fear. It is moving forward while afraid.","The seed does not see the flower it will become. It simply grows.","You have survived every hard day so far. Your record is perfect.","Storms do not last. Hold on until the sky clears.","One good decision today is worth more than a hundred plans tomorrow.","Kindness costs nothing and builds everything.","Rest if you must. But do not quit.","A river cuts through rock not by force but by persistence.","You are not behind. You are on your own path.","Start where you are. Use what you have. Do what you can.","Silence is sometimes the loudest answer to a noisy world.","Growth hurts because you are becoming something larger than before.","The strongest oak was once a tiny acorn that refused to give up.","What you do today quietly shapes who you are tomorrow.","Even the longest journey begins with a single step forward."],
+    medium:["There is a particular kind of strength that only comes from having been broken. Not the strength of someone who has never fallen, but the deeper, quieter strength of someone who fell, lay still for a moment, and then chose to get back up anyway. That kind of strength cannot be taught. It can only be lived.","Every person you admire once stood at the edge of something that terrified them. They did not feel ready. They did not feel qualified. They simply decided that fear was not a good enough reason to stay still. The decision to move, imperfect and uncertain, is what separated them from the version of themselves that never tried.","Some of the most important work in your life will happen in the quiet moments when no one is watching. The early morning effort. The late night revision. The choice to do the right thing when the wrong thing would have been so much easier. Character is not built in public. It is built in private.","There will be seasons of your life when nothing seems to grow. When you work and give and try and the ground stays dry. Do not abandon the field. Roots grow deepest in drought. What looks like nothing happening is often everything happening underground, preparing you for a harvest you cannot yet imagine.","Perseverance is not about being fearless or tireless or free from doubt. It is about being afraid and continuing. Being exhausted and continuing. Doubting everything and continuing. The people who change the world are rarely the most gifted. They are the ones who refused to stop.","The weight you carry today is building the muscle you will need tomorrow. Every challenge accepted, every difficulty endured, every moment you chose to keep going when stopping felt easier, all of it is preparing you for something greater than you can currently see from where you are standing.","You were not designed to live a small life. The hesitation you feel is not evidence that you cannot do something. It is evidence that it matters to you. And things that matter are always worth the discomfort of pursuing them with everything you have.","One of the most courageous things a person can do is to continue being hopeful in a world that sometimes gives them every reason not to be. Hope is not naivety. It is a discipline. A daily decision to believe that what comes next can be better than what came before.","Comparison is the quietest thief in the room. It steals your joy without making a sound, leaving you poorer without ever touching your possessions. The only race worth running is the one against who you were yesterday. Everything else is a distraction from the life you were meant to build.","Nobody who ever changed something great started out knowing exactly how to do it. They started out knowing only that it needed to be done, and that they were willing to figure out the rest along the way. Willingness is often worth more than knowledge at the beginning of anything important.","You are allowed to have hard days without letting them define you. You are allowed to feel lost without believing that you will never be found. You are allowed to be a work in progress. In fact, the most beautiful and useful things in this world almost always are.","The discipline you build on the days you do not feel like showing up is the same discipline that carries you through the days when everything is on the line. Do not wait to feel motivated. Motivation follows action, not the other way around. Start anyway. The feeling will come.","Gratitude does not mean pretending that everything is perfect. It means choosing to notice what is good even when much is hard. That small shift in attention, from what is missing to what is present, has the quiet power to transform the entire texture of a life.","Some doors close because something better requires your hands to be free. Some paths end because the destination was never really yours. Rejection is not always punishment. Sometimes it is protection. Sometimes it is redirection. The challenge is learning to tell the difference in the dark.","You do not become resilient by avoiding hard things. You become resilient by going through hard things and discovering that you are still standing on the other side. Every difficulty you have survived is evidence that you are more capable than you were giving yourself credit for."],
+    hard:["There is a particular alchemy that happens in the human spirit when it encounters genuine adversity. Something that was soft becomes tempered. Something that was scattered finds its center. The person who emerges from a true trial is not the same person who entered it, not diminished, as suffering might suggest, but expanded in ways that comfort never could have produced. This is not to romanticize hardship. Pain is real, and loss is real, and there is no virtue in pretending otherwise. But within suffering there is an invitation, not one we would choose, but one that, if accepted with openness and honesty, can lead us to a depth of character and a clarity of purpose that the easier road could never have offered.","We often speak of wisdom as though it were a destination, a state one arrives at after sufficient study or sufficient years. But wisdom is not a place. It is a practice. It is the discipline of sitting quietly with difficult questions rather than rushing toward easy answers. It is the willingness to say I do not know, and to mean it, and to let that uncertainty be the beginning of genuine understanding rather than a wound to be quickly covered. The wisest people in every generation have not been those with the most information, but those with the greatest willingness to be changed by what they encounter, to hold their beliefs with conviction but without rigidity, and to remain perpetually curious about the difference between what they know and what they only think they know.","There is a kind of loneliness that comes not from being alone but from feeling unseen. From moving through a world that seems indifferent to your interior life, your fears, your longings, the particular texture of your experience. And yet there is a paradox at the heart of this loneliness, which is that the very things that make you feel most isolated, your struggles, your doubts, your quiet sense of not quite belonging, are precisely the things you share most deeply with every other person who has ever lived. You are not alone in feeling alone. And that understanding, simple as it sounds, has the power to transform isolation into something closer to solidarity, if you let it.","Purpose is rarely discovered fully formed. It does not arrive like a letter addressed directly to you, clear in its instructions and convenient in its timing. It is something you build gradually, through action and attention, through noticing what breaks your heart and what fills it back up, through the accumulation of choices made in the direction of what matters most to you. The people who seem most certain of their purpose are usually not the ones who found it earliest, but the ones who committed most fully to the search, who refused to stop asking the question even when the answer took longer than expected to arrive.","Forgiveness is perhaps the most misunderstood of all the virtues. People often imagine it as a gift given to the person who wronged them, a release of accountability, an erasure of what happened. But forgiveness is not for them. It is for you. It is the decision to stop allowing someone else's action to continue shaping your interior life long after the moment has passed. It does not require reconciliation. It does not require forgetting. It requires only the willingness to put down a weight that was never meant to be carried this far, and to discover what you are capable of when your hands are finally free."],
+    expert:["There is a particular quality of attention that the ancient philosophers called presence, and that we, in our distracted modern age, have largely forgotten how to practice. It is not merely the absence of distraction, though that is a part of it. It is something more active, a deliberate turning of the whole self toward what is happening right now, in this moment, with this person, in this place. Not the moment we are anticipating or rehearsing, not the conversation we are composing in our heads while someone else is speaking, but the living, unrepeatable texture of now. The philosopher Simone Weil wrote that attention is the rarest and purest form of generosity, and she was right in a way that rewards slow contemplation. When we give another person our genuine, undivided attention, we are not merely being polite. We are telling them, with our full presence, that they are worth the whole of us, that what they are saying matters enough to call us completely out of our preoccupations and into the space between us. In a world that has become extraordinarily skilled at capturing our attention and extraordinarily poor at honoring it, this kind of presence is not just a gift. It is a form of quiet resistance.","The history of human progress is, at its most honest, a history of people who were wrong about something important, discovered they were wrong, and had the intellectual courage and the personal humility to change their minds. This sounds simple. It is, in practice, extraordinarily difficult. The mind does not naturally move toward revision. It moves toward confirmation, seeking out evidence that supports what it already believes, filtering out evidence that challenges it, finding elaborate justifications for positions it had reached long before the evidence was gathered. The discipline of changing your mind, of actually following evidence and reason rather than merely invoking them while doing something else entirely, requires a kind of ongoing intellectual courage that our culture does not celebrate nearly enough. We admire consistency. We punish changing our minds. And yet the ability to say I was wrong, I have learned something, and I think differently now is not weakness. It is perhaps the highest expression of intellectual integrity available to us, and the one most essential to any life genuinely committed to truth.","There is a conversation that takes place in every life between the person we are and the person we are becoming, a negotiation, sometimes gentle and sometimes fierce, between our accumulated habits and our emerging possibilities. Most of the time this conversation happens below the surface of conscious thought, in the small daily choices that seem too minor to examine but are, in aggregate, the very substance of character. The life we are living is, in large part, the sum of choices we have made without quite realizing we were making them, the path of least resistance taken so many times that it became a groove, and then a channel, and then something that felt so natural we stopped questioning whether it was actually chosen. This is why self-knowledge is not a luxury or an indulgence but a practical necessity for anyone who wishes to live deliberately. To know your own patterns, the ways you retreat, the ways you deceive yourself, the things you consistently avoid and the reasons you give yourself for avoiding them, is to begin, at last, to make choices that are genuinely yours."]
+  },
+  es:{
+    easy:["Cae siete veces. Levantate ocho. El suelo no es tu hogar.","Los pasos pequenos tambien te llevan hacia adelante. Nunca confundas lento con detenido.","No tienes que ser grande para empezar. Pero tienes que empezar para ser grande.","Cada manana es una oportunidad. Tomala antes de que se convierta en ayer.","Los dias dificiles forjan personas fuertes. Dejalos que te moldeen, no que te detengan.","El valor no es la ausencia del miedo. Es avanzar mientras se tiene miedo.","La semilla no ve la flor en que se convertira. Simplemente crece.","Has sobrevivido cada dia dificil hasta ahora. Tu record es perfecto.","Las tormentas no duran. Aguanta hasta que el cielo se despeje.","Una buena decision hoy vale mas que cien planes para manana.","La bondad no cuesta nada y lo construye todo.","Descansa si debes. Pero no te rindas.","El rio corta la roca no por la fuerza sino por la persistencia.","No estas atrasado. Estas en tu propio camino.","Empieza donde estas. Usa lo que tienes. Haz lo que puedas.","El silencio es a veces la respuesta mas clara a un mundo ruidoso.","Crecer duele porque te estas convirtiendo en algo mas grande que antes.","El roble mas fuerte fue una vez una pequena bellota que se nego a rendirse.","Lo que haces hoy en silencio da forma a quien seras manana.","Incluso el viaje mas largo comienza con un solo paso hacia adelante."],
+    medium:["Existe una clase particular de fortaleza que solo proviene de haber sido quebrado. No la fortaleza de quien nunca ha caido, sino la fortaleza mas profunda y silenciosa de quien cayo, permanecio quieto un momento y luego eligio levantarse de todos modos. Esa clase de fortaleza no puede ensenarse. Solo puede vivirse.","Cada persona que admiras alguna vez estuvo al borde de algo que la aterrorizaba. No se sentia lista. No se sentia calificada. Simplemente decidio que el miedo no era razon suficiente para quedarse quieta. La decision de moverse, imperfecta e incierta, es lo que la separo de la version de si misma que nunca lo intento.","Parte del trabajo mas importante de tu vida ocurrira en los momentos silenciosos en que nadie te observa. El esfuerzo temprano en la manana. La revision en las noches. La eleccion de hacer lo correcto cuando lo incorrecto habria sido mucho mas facil. El caracter no se construye en publico. Se construye en privado.","Habra temporadas en tu vida en que nada parece crecer. Cuando trabajas, das y te esfuerzas y la tierra permanece seca. No abandones el campo. Las raices crecen mas profundas en la sequia. Lo que parece que no ocurre suele ser todo ocurriendo bajo tierra, preparandote para una cosecha que aun no puedes imaginar.","La perseverancia no consiste en ser valiente, incansable o libre de dudas. Consiste en tener miedo y continuar. En estar agotado y continuar. En dudar de todo y continuar. Las personas que cambian el mundo rara vez son las mas dotadas. Son las que se negaron a detenerse.","El peso que cargas hoy esta construyendo el musculo que necesitaras manana. Cada desafio aceptado, cada dificultad soportada, cada momento en que elegiste seguir cuando detenerte parecia mas facil, todo te prepara para algo mas grande de lo que puedes ver desde donde te encuentras ahora.","No fuiste disenado para vivir una vida pequena. La duda que sientes no es evidencia de que no puedas hacer algo. Es evidencia de que te importa. Y las cosas que importan siempre merecen la incomodidad de perseguirlas con todo lo que tienes.","Una de las cosas mas valientes que puede hacer una persona es seguir siendo esperanzadora en un mundo que a veces le da todas las razones para no serlo. La esperanza no es ingenuidad. Es una disciplina. Una decision diaria de creer que lo que viene puede ser mejor que lo que fue.","La comparacion es el ladron mas silencioso de la habitacion. Roba tu alegria sin hacer ruido. La unica carrera que vale la pena correr es la que disputas contra quien eras ayer. Todo lo demas distrae de la vida que estas llamado a construir.","Nadie que haya cambiado algo grande empezo sabiendo exactamente como hacerlo. Empezo sabiendo solo que debia hacerse y que estaba dispuesto a descubrir el resto en el camino. La disposicion suele valer mas que el conocimiento al inicio de algo importante."],
+    hard:["Existe una alquimia particular que ocurre en el espiritu humano cuando encuentra adversidad genuina. Algo que era blando se templa. Algo que estaba disperso encuentra su centro. La persona que emerge de una prueba verdadera no es la misma que entro en ella, no disminuida como podria sugerir el sufrimiento, sino expandida de maneras que la comodidad nunca habria podido producir. Esto no es romantizar la dificultad. El dolor es real, y la perdida es real, y no hay virtud en fingir lo contrario. Pero dentro del sufrimiento hay una invitacion, una que no elegiriamos, pero que, si se acepta con apertura y honestidad, puede llevarnos a una profundidad de caracter y una claridad de proposito que el camino mas facil nunca habria ofrecido.","A menudo hablamos de la sabiduria como si fuera un destino, un estado al que se llega despues de suficiente estudio o suficientes anos. Pero la sabiduria no es un lugar. Es una practica. Es la disciplina de sentarse tranquilamente con preguntas dificiles en lugar de apresurarse hacia respuestas faciles. Es la disposicion de decir no se, y decirlo en serio, y dejar que esa incertidumbre sea el comienzo de una comprension genuina. Las personas mas sabias de cada generacion no han sido las que poseian mas informacion, sino las mas dispuestas a ser transformadas por lo que encontraban.","El proposito rara vez se descubre ya formado. No llega como una carta dirigida directamente a ti, clara en sus instrucciones y conveniente en su momento. Es algo que construyes gradualmente, a traves de la accion y la atencion, notando que te rompe el corazon y que vuelve a llenarlo. Las personas que parecen mas seguras de su proposito no son las que lo encontraron antes, sino las que se comprometieron mas plenamente con la busqueda, que se negaron a dejar de hacer la pregunta incluso cuando la respuesta tardo mas de lo esperado en llegar.","El perdon es quizas la mas incomprendida de todas las virtudes. Las personas suelen imaginarlo como un regalo para quien les hizo dano. Pero el perdon no es para ellos. Es para ti. Es la decision de dejar de permitir que la accion de otra persona continue moldeando tu vida interior mucho despues de que el momento haya pasado. No requiere reconciliacion. No requiere olvidar. Requiere solo la disposicion de soltar un peso que nunca debiste cargar tan lejos.","Existe una soledad que proviene no de estar solo sino de sentirse invisible. De moverse por un mundo que parece indiferente a tu vida interior. Y sin embargo hay una paradoja en el corazon de esta soledad: las mismas cosas que mas te aislan, tus luchas, tus dudas, tu silenciosa sensacion de no pertenecer del todo, son precisamente las que compartes mas profundamente con cada otra persona que ha vivido. No estas solo en sentirte solo. Y esa comprension tiene el poder de transformar el aislamiento en algo parecido a la solidaridad."],
+    expert:["Existe una calidad particular de atencion que los filosofos antiguos llamaban presencia y que nosotros, en nuestra era moderna y distraida, hemos olvidado en gran medida como practicar. No es simplemente la ausencia de distraccion, aunque eso es parte de ella. Es algo mas activo: un giro deliberado del ser completo hacia lo que ocurre ahora mismo, en este momento, con esta persona, en este lugar. No el momento que anticipamos o ensayamos, no la conversacion que componemos en nuestra mente mientras alguien mas habla, sino la textura viva e irrepetible del ahora. La filosofa Simone Weil escribio que la atencion es la forma mas rara y pura de generosidad, y tenia razon de una manera que recompensa la contemplacion lenta. Cuando damos a otra persona nuestra atencion genuina e indivisa, no estamos siendo simplemente corteses. Le estamos diciendo, con toda nuestra presencia, que merece todo de nosotros.","La historia del progreso humano es, en su version mas honesta, una historia de personas que estaban equivocadas en algo importante, descubrieron que estaban equivocadas y tuvieron el valor intelectual y la humildad personal para cambiar de opinion. Esto suena simple. En la practica es extraordinariamente dificil. La mente no se mueve naturalmente hacia la revision. Se mueve hacia la confirmacion, buscando evidencia que respalde lo que ya cree, filtrando lo que la desafia. La disciplina de cambiar de opinion, de seguir genuinamente la evidencia y la razon, requiere un tipo de valentía intelectual continua que nuestra cultura no celebra suficientemente. Decir me equivoque, he aprendido algo y ahora pienso diferente no es debilidad. Es quizas la expresion mas elevada de integridad intelectual disponible para nosotros.","Hay una conversacion que tiene lugar en cada vida entre la persona que somos y la persona en que nos estamos convirtiendo, una negociacion, a veces suave y a veces feroz, entre nuestros habitos acumulados y nuestras posibilidades emergentes. La mayor parte del tiempo esta conversacion ocurre por debajo de la superficie del pensamiento consciente, en las pequenas elecciones diarias que parecen demasiado menores para examinarlas pero que son, en conjunto, la sustancia misma del caracter. La vida que vivimos es, en gran parte, la suma de elecciones que hemos tomado sin darnos cuenta del todo de que las estabamos tomando. Por eso el autoconocimiento no es un lujo sino una necesidad practica para quienes desean vivir deliberadamente."]
+  },
+  pt:{
+    easy:["Caia sete vezes. Levante-se oito. O chao nao e o seu lar.","Passos pequenos ainda te levam adiante. Nunca confunda lento com parado.","Voce nao precisa ser grande para comecar. Mas precisa comecar para ser grande.","Cada manha e uma chance. Aproveite-a antes que se torne ontem.","Dias dificeis constroem pessoas fortes. Deixe-os molda-lo, nao para-lo.","Coragem nao e a ausencia do medo. E seguir em frente mesmo com medo.","A semente nao ve a flor em que se tornara. Ela simplesmente cresce.","Voce sobreviveu a cada dia dificil ate agora. Seu historico e perfeito.","As tempestades nao duram. Aguente ate o ceu clarear.","Uma boa decisao hoje vale mais que cem planos amanha.","A bondade nao custa nada e constroi tudo.","Descanse se precisar. Mas nao desista.","O rio corta a rocha nao pela forca, mas pela persistencia.","Voce nao esta atrasado. Esta no seu proprio caminho.","Comece onde voce esta. Use o que tem. Faca o que pode.","O silencio e as vezes a resposta mais clara para um mundo barulhento.","Crescer doi porque voce esta se tornando algo maior do que antes.","O carvalho mais forte ja foi uma pequena bolota que se recusou a desistir.","O que voce faz hoje em silencio molda quem voce sera amanha.","Mesmo a jornada mais longa comeca com um unico passo a frente."],
+    medium:["Existe um tipo particular de forca que so vem de ter sido quebrado. Nao a forca de quem nunca caiu, mas a forca mais profunda e silenciosa de quem caiu, ficou quieto por um momento e depois escolheu se levantar assim mesmo. Esse tipo de forca nao pode ser ensinado. So pode ser vivido.","Cada pessoa que voce admira ja esteve a beira de algo que a aterrorizava. Ela nao se sentia pronta. Nao se sentia qualificada. Simplesmente decidiu que o medo nao era razao suficiente para ficar parada. A decisao de se mover, imperfeita e incerta, e o que a separou da versao de si mesma que nunca tentou.","Parte do trabalho mais importante da sua vida acontecera nos momentos silenciosos em que ninguem esta olhando. O esfoco de madrugada. A revisao noturna. A escolha de fazer o certo quando o errado teria sido muito mais facil. O carater nao se constroi em publico. Constroi-se em particular.","Havera temporadas em sua vida em que nada parece crescer. Quando voce trabalha, da e tenta e o chao permanece seco. Nao abandone o campo. As raizes crescem mais fundo na seca. O que parece nao estar acontecendo muitas vezes e tudo acontecendo embaixo da terra, preparando voce para uma colheita que ainda nao consegue imaginar.","Perseveranca nao e ser destemido, incansavel ou livre de duvidas. E ter medo e continuar. Estar exausto e continuar. Duvidar de tudo e continuar. As pessoas que mudam o mundo raramente sao as mais talentosas. Sao as que se recusaram a parar.","O peso que voce carrega hoje esta construindo o musculo que voce precisara amanha. Cada desafio aceito, cada dificuldade suportada, cada momento em que voce escolheu continuar quando parar parecia mais facil, tudo esta te preparando para algo maior do que voce consegue ver de onde esta agora.","Voce nao foi feito para viver uma vida pequena. A hesitacao que sente nao e evidencia de que nao consegue fazer algo. E evidencia de que isso importa para voce. E as coisas que importam sempre valem o desconforto de persegui-las com tudo que voce tem.","Uma das coisas mais corajosas que uma pessoa pode fazer e continuar sendo esperancosa em um mundo que as vezes lhe da todos os motivos para nao ser. A esperanca nao e ingenuidade. E uma disciplina. Uma decisao diaria de acreditar que o que vem a seguir pode ser melhor do que o que veio antes.","A comparacao e o ladrao mais silencioso da sala. Ela rouba sua alegria sem fazer barulho. A unica corrida que vale a pena disputar e a contra quem voce era ontem. Todo o resto e distracao da vida que voce foi chamado a construir.","Ninguem que ja mudou algo grande comecou sabendo exatamente como faze-lo. Comecou sabendo apenas que precisava ser feito e que estava disposto a descobrir o resto pelo caminho. A disposicao muitas vezes vale mais que o conhecimento no inicio de qualquer coisa importante."],
+    hard:["Existe uma alquimia particular que acontece no espirito humano quando ele encontra adversidade genuina. Algo que era mole se tempera. Algo que estava disperso encontra seu centro. A pessoa que emerge de uma provacao verdadeira nao e a mesma que entrou nela, nao diminuida como o sofrimento poderia sugerir, mas expandida de maneiras que o conforto jamais poderia ter produzido. Isso nao e romantizar a dificuldade. A dor e real, e a perda e real, e nao ha virtude em fingir o contrario. Mas dentro do sofrimento ha um convite, nao um que escolheriamos, mas que, se aceito com abertura e honestidade, pode nos levar a uma profundidade de carater e a uma clareza de proposito que o caminho mais facil nunca teria oferecido.","Costumamos falar da sabedoria como se fosse um destino, um estado ao qual se chega apos estudo ou anos suficientes. Mas a sabedoria nao e um lugar. E uma pratica. E a disciplina de sentar tranquilamente com perguntas dificeis em vez de correr para respostas faceis. E a disposicao de dizer nao sei, e dizer de verdade, e deixar que essa incerteza seja o comeco de uma compreensao genuina. As pessoas mais sabias de cada geracao nao foram as que tinham mais informacao, mas as mais dispostas a serem transformadas pelo que encontravam.","O proposito raramente e descoberto ja formado. Nao chega como uma carta endererada diretamente a voce, clara em suas instrucoes e conveniente em seu momento. E algo que voce constroi gradualmente, por meio da acao e da atencao, percebendo o que parte seu coracao e o que o preenche novamente, por meio da acumulacao de escolhas feitas na direcao do que mais importa para voce. As pessoas que parecem mais certas de seu proposito nao sao as que o encontraram mais cedo, mas as que se comprometeram mais plenamente com a busca.","O perdao e talvez a mais incompreendida de todas as virtudes. As pessoas frequentemente o imaginam como um presente dado a quem as prejudicou. Mas o perdao nao e para eles. E para voce. E a decisao de parar de permitir que a acao de outra pessoa continue moldando sua vida interior muito depois de o momento ter passado. Nao requer reconciliacao. Nao requer esquecer. Requer apenas a disposicao de largar um peso que nunca deveria ter sido carregado tao longe, e descobrir do que voce e capaz quando suas maos finalmente estao livres.","Existe uma solidao que vem nao de estar sozinho, mas de se sentir invisivel. De mover-se por um mundo que parece indiferente a sua vida interior. E no entanto ha um paradoxo no coracao dessa solidao: as mesmas coisas que mais o isolam, suas lutas, suas duvidas, sua silenciosa sensacao de nao pertencer de todo, sao precisamente as que voce compartilha mais profundamente com cada outra pessoa que ja viveu. Voce nao esta sozinho em se sentir sozinho. E essa compreensao tem o poder de transformar o isolamento em algo mais proximo da solidariedade."],
+    expert:["Existe uma qualidade particular de atencao que os filosofos antigos chamavam de presenca e que nos, em nossa era moderna e distraida, esquecemos em grande parte como praticar. Nao e meramente a ausencia de distracao, embora isso faca parte dela. E algo mais ativo: uma virada deliberada do ser completo para o que esta acontecendo agora mesmo, neste momento, com esta pessoa, neste lugar. Nao o momento que antecipamos ou ensaiamos, nao a conversa que compomos em nossa mente enquanto outra pessoa fala, mas a textura viva e irrepetivel do agora. A filosofa Simone Weil escreveu que a atencao e a forma mais rara e pura de generosidade, e ela estava certa de uma forma que recompensa a contemplacao lenta. Quando damos a outra pessoa nossa atencao genuina e indivisa, nao estamos apenas sendo educados. Estamos dizendo, com toda a nossa presenca, que ela merece tudo de nos.","A historia do progresso humano e, em sua versao mais honesta, uma historia de pessoas que estavam erradas sobre algo importante, descobriram que estavam erradas e tiveram a coragem intelectual e a humildade pessoal para mudar de opiniao. Isso parece simples. Na pratica e extraordinariamente dificil. A mente nao se move naturalmente em direcao a revisao. Move-se em direcao a confirmacao, buscando evidencias que apoiem o que ja acredita, filtrando o que a desafia. A disciplina de mudar de opiniao, de realmente seguir evidencias e razao em vez de apenas invoca-las, exige um tipo de coragem intelectual continua que nossa cultura nao celebra suficientemente. Dizer eu estava errado, aprendi algo e agora penso diferente nao e fraqueza. E talvez a expressao mais elevada de integridade intelectual disponivel para nos.","Ha uma conversa que acontece em cada vida entre a pessoa que somos e a pessoa em que estamos nos tornando, uma negociacao, as vezes gentil e as vezes feroz, entre nossos habitos acumulados e nossas possibilidades emergentes. Na maior parte do tempo essa conversa acontece abaixo da superficie do pensamento consciente, nas pequenas escolhas diarias que parecem pequenas demais para examinar, mas que sao, em conjunto, a propria substancia do carater. A vida que vivemos e, em grande parte, a soma de escolhas que fizemos sem perceber completamente que as estávamos fazendo. E por isso que o autoconhecimento nao e um luxo, mas uma necessidade pratica para quem deseja viver deliberadamente."]
+  }
+};
+
+// =============================================================
+// STORY QUEUE — No-repeat system
+// =============================================================
+var storyQueue=[];
+var lastStoryShown='';
+
+function getNextStory(){
+  var lang=Settings.lang;
+  var diff=Settings.diff;
+  var pool=(STORIES[lang]&&STORIES[lang][diff])||STORIES.en.easy;
+  if(storyQueue.length===0){
+    storyQueue=shuffle(pool.slice());
+    // Ensure first of new shuffle is not same as last shown
+    if(storyQueue.length>1&&storyQueue[0]===lastStoryShown){
+      var tmp=storyQueue[0];
+      storyQueue[0]=storyQueue[1];
+      storyQueue[1]=tmp;
+    }
+  }
+  var story=storyQueue.shift();
+  lastStoryShown=story;
+  return story;
+}
+
+// =============================================================
+// INIT
+// =============================================================
+applyLang();
+buildWords();
+renderHeatmap();
+renderKeyboard({});
+updatePBBadge();
+applyAppSettings();
+</script>
+</body>
+</html>
